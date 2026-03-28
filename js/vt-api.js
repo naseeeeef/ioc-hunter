@@ -14,7 +14,9 @@ export class VTApi {
      * @returns {Promise<Object>} Formatted result object
      */
     async scanIoc(ioc, type) {
-        const endpoint = type === 'ip' ? `${this.baseUrl}/ip_addresses/${ioc}` : `${this.baseUrl}/domains/${ioc}`;
+        const targetUrl = type === 'ip' ? `${this.baseUrl}/ip_addresses/${ioc}` : `${this.baseUrl}/domains/${ioc}`;
+        // VirusTotal blocks direct frontend CORS requests, so we must route through a secure proxy
+        const endpoint = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         
         try {
             const response = await fetch(endpoint, {
