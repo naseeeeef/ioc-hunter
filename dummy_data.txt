@@ -1,0 +1,19 @@
+# Phishing / Malware Campaign IPs
+103.18.243.2
+185.158.248.156
+91.240.118.99
+
+# Known C2 Domains
+evil-malware-server.com
+phishing-login-update.net
+microsoft-support-fake.org
+
+# Safe / Clean IOCs
+8.8.8.8
+1.1.1.1
+google.com
+github.com
+
+# Duplicates to test deduplication
+1.1.1.1
+google.com
