@@ -17,9 +17,11 @@ export class VTApi {
         const targetUrl = type === 'ip' ? `${this.baseUrl}/ip_addresses/${ioc}` : `${this.baseUrl}/domains/${ioc}`;
         
         // Use multiple fallback CORS proxies, just in case one is down or blocked by an adblocker
+        // The final fallback is a direct connection (targetUrl), which requires a "CORS Unblock" browser extension.
         const endpoints = [
             `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-            `https://thingproxy.freeboard.io/fetch/${targetUrl}`
+            `https://thingproxy.freeboard.io/fetch/${targetUrl}`,
+            targetUrl 
         ];
 
         let lastError = null;
