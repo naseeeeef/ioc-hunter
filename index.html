@@ -115,11 +115,11 @@
                 <div class="results-header">
                     <h2>Analysis Results</h2>
                     <div class="results-actions">
-                        <div id="verdictFilterTabs" class="filter-tabs">
-                            <button class="filter-tab active" data-verdict="ALL">All</button>
-                            <button class="filter-tab" data-verdict="THREATS">Threats</button>
-                            <button class="filter-tab" data-verdict="CLEAN">Clean</button>
-                        </div>
+                        <select id="verdictFilter" class="filter-select">
+                            <option value="ALL">All Verdicts</option>
+                            <option value="THREATS">Threats (Malicious/Suspicious)</option>
+                            <option value="CLEAN">Clean</option>
+                        </select>
                         <input type="text" id="searchInput" placeholder="Search IOC..." class="search-input">
                         
                         <div class="dropdown">

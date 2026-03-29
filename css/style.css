@@ -305,40 +305,7 @@ input[type="file"] { display: none; }
   align-items: center;
 }
 
-.filter-tabs {
-  display: flex;
-  background: var(--bg-primary);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: 2px;
-  gap: 2px;
-}
-
-.filter-tab {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  padding: 0.4rem 0.8rem;
-  border-radius: calc(var(--radius-md) - 2px);
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.filter-tab:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.filter-tab.active {
-  background: var(--accent-color);
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.search-input {
+.filter-select, .search-input {
   background: var(--bg-primary);
   border: 1px solid var(--glass-border);
   color: var(--text-primary);
@@ -579,17 +546,8 @@ input[type="file"] { display: none; }
     align-items: stretch;
   }
   
-  .filter-tabs, .search-input {
+  .filter-select, .search-input {
     width: 100%;
-  }
-
-  .filter-tabs {
-    justify-content: stretch;
-  }
-
-  .filter-tab {
-    flex: 1;
-    text-align: center;
   }
 
   .dropdown {

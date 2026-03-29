@@ -40,7 +40,7 @@ const UI = {
     progressBar: document.getElementById('progressBar'),
 
     resultsBody: document.getElementById('resultsBody'),
-    verdictFilterTabs: document.getElementById('verdictFilterTabs'),
+    verdictFilter: document.getElementById('verdictFilter'),
     searchInput: document.getElementById('searchInput'),
 
     exportBtn: document.getElementById('exportBtn'),
@@ -102,17 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.pauseBtn.addEventListener('click', pauseScan);
     UI.clearBtn.addEventListener('click', clearAll);
 
-    UI.verdictFilterTabs.addEventListener('click', (e) => {
-        const tab = e.target.closest('.filter-tab');
-        if (!tab) return;
-        
-        // Update active class
-        UI.verdictFilterTabs.querySelectorAll('.filter-tab').forEach(btn => btn.classList.remove('active'));
-        tab.classList.add('active');
-        
-        // Trigger table re-render
-        renderTable();
-    });
+    UI.verdictFilter.addEventListener('change', renderTable);
     UI.searchInput.addEventListener('keyup', renderTable);
 
     // Export Dropdown
@@ -368,8 +358,7 @@ function setStatus(text, className) {
 
 function renderTable() {
     // Collect filters
-    const activeTab = UI.verdictFilterTabs.querySelector('.filter-tab.active');
-    const filterVerdict = activeTab ? activeTab.dataset.verdict : 'ALL';
+    const filterVerdict = UI.verdictFilter.value;
     const filterSearch = UI.searchInput.value.toLowerCase();
 
     // Clear Body
