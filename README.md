@@ -11,7 +11,9 @@ Bulk IOC Hunter is a modern, responsive web application designed for security an
 - **Pause & Resume**: Easily pause and resume large scans without losing your progress.
 - **Filtering & Search**: Quickly filter results by verdict (Malicious, Suspicious, Clean, Unknown) or search for specific IOCs.
 - **Export Data**: Export your detailed scan results to CSV or JSON formats for reporting or further analysis.
-- **Modern UI/UX**: Features a sleek, dark-themed responsive interface with real-time progress tracking, visual badges, and micro-animations.
+- **Modern UI/UX**: Features a sleek, dark-themed interface with real-time progress tracking, visual badges, and micro-animations.
+- **Mobile Responsive**: Fully optimized for mobile screens, allowing analysts to check IOCs on the go.
+- **Corporate Firewall Bypass**: Built-in support for custom private proxies (like Cloudflare Workers) to bypass strict Enterprise EDR and SIEM filters.
 
 ## Prerequisites
 
@@ -20,23 +22,27 @@ To use this application, you must have a **VirusTotal API Key**.
 
 ## Getting Started
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/naseeeeef/ioc-hunter.git
-   ```
-2. **Open the application:**
-   - Open `index.html` in your favorite web browser. 
-   - *Note: Since this is a client-side application using vanilla HTML/JS/CSS, no build processes or local servers are strictly required.*
-3. **Configure your API Key:**
+1. **Access the Application:**
+   - Either visit the live GitHub Pages link: [Bulk IOC Hunter](https://naseeeeef.github.io/ioc-hunter/)
+   - Or clone the repository locally: `git clone https://github.com/naseeeeef/ioc-hunter.git` and open `index.html`.
+2. **Configure your API Key:**
    - On first launch, the application will prompt you to enter your VirusTotal API key. 
    - You can update your API key at any time by clicking the **Settings (Gear) Icon** in the top right corner. The key is securely stored in your browser's local storage.
-4. **Scan IOCs:**
+3. **Scan IOCs:**
    - Paste your IOCs into the provided text area, or upload a file containing IOCs.
-   - Click "Start Scan" and wait for the results!
+   - Click "Parse & Start Scan" and wait for the results!
+
+## Corporate Proxy Setup (Bypassing Firewalls)
+
+If you are using this tool in a SOC environment behind a strict corporate firewall, your browser's internal CORS requests might be blocked. Do not install browser extensions to bypass this, as it may alert your SIEM.
+
+Instead, you can deploy the included `worker.js` script to Cloudflare Workers for free in about 2 minutes. This creates a secure, private proxy just for you. 
+1. See the [PROXY-SETUP.md](PROXY-SETUP.md) file in this repository for an exact 3-step setup guide.
+2. Once deployed, open the **Settings** menu in the IOC Hunter and paste your proxy URL into the **Custom Proxy URL** field. 
 
 ## Privacy & Security
 
-- **API Key Storage**: Your VirusTotal API key is stored **locally** in your browser's `localStorage`. It is never sent anywhere except to the VirusTotal servers (via a secure CORS proxy).
+- **API Key Storage**: Your VirusTotal API key is stored **locally** in your browser's `localStorage` and never sent anywhere except to the VirusTotal servers.
 - **Client-Side Only**: All parsing and data processing occurs directly within your browser. 
 
 ## Technical Stack
