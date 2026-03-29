@@ -40,7 +40,7 @@ const UI = {
     progressBar: document.getElementById('progressBar'),
 
     resultsBody: document.getElementById('resultsBody'),
-    verdictFilter: document.getElementById('verdictFilter'),
+    verdictFilterTabs: document.getElementById('verdictFilterTabs'),
     searchInput: document.getElementById('searchInput'),
 
     exportBtn: document.getElementById('exportBtn'),
@@ -102,7 +102,17 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.pauseBtn.addEventListener('click', pauseScan);
     UI.clearBtn.addEventListener('click', clearAll);
 
-    UI.verdictFilter.addEventListener('change', renderTable);
+    UI.verdictFilterTabs.addEventListener('click', (e) => {
+        const tab = e.target.closest('.filter-tab');
+        if (!tab) return;
+        
+        // Update active class
+        UI.verdictFilterTabs.querySelectorAll('.filter-tab').forEach(btn => btn.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Trigger table re-render
+        renderTable();
+    });
     UI.searchInput.addEventListener('keyup', renderTable);
 
     // Export Dropdown
@@ -358,7 +368,8 @@ function setStatus(text, className) {
 
 function renderTable() {
     // Collect filters
-    const filterVerdict = UI.verdictFilter.value;
+    const activeTab = UI.verdictFilterTabs.querySelector('.filter-tab.active');
+    const filterVerdict = activeTab ? activeTab.dataset.verdict : 'ALL';
     const filterSearch = UI.searchInput.value.toLowerCase();
 
     // Clear Body
@@ -366,7 +377,16 @@ function renderTable() {
 
     // Apply Search/Filters
     let filteredResults = results.filter(row => {
-        let matchVerdict = filterVerdict === 'ALL' || row.verdict === filterVerdict;
+        let matchVerdict = true;
+        if (filterVerdict === 'THREATS') {
+            matchVerdict = (row.verdict === 'MALICIOUS' || row.verdict === 'SUSPICIOUS');
+        } else if (filterVerdict === 'CLEAN') {
+            matchVerdict = row.verdict === 'CLEAN';
+        } else {
+            // ALL or UNKNOWN etc. if needed
+            matchVerdict = true;
+        }
+
         let matchSearch = !filterSearch || row.ioc.toLowerCase().includes(filterSearch);
         return matchVerdict && matchSearch;
     });
