@@ -123,12 +123,38 @@ function handleFileUpload(e) {
     if (!file) return;
 
     UI.fileNameDisplay.textContent = file.name;
+    const extension = file.name.split('.').pop().toLowerCase();
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
-        UI.iocInput.value = evt.target.result;
-    };
-    reader.readAsText(file);
+
+    if (extension === 'xlsx' || extension === 'xls') {
+        reader.onload = (evt) => {
+            try {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                let combinedText = '';
+
+                // Read all sheets
+                workbook.SheetNames.forEach(sheetName => {
+                    const worksheet = workbook.Sheets[sheetName];
+                    // Convert each sheet to a string so our regex parser can find IOCs
+                    combinedText += XLSX.utils.sheet_to_csv(worksheet) + '\n';
+                });
+
+                UI.iocInput.value = combinedText;
+            } catch (err) {
+                console.error("Excel parse error:", err);
+                alert("Could not parse Excel file. Ensure it's not password protected.");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        // Standard text/csv logic
+        reader.onload = (evt) => {
+            UI.iocInput.value = evt.target.result;
+        };
+        reader.readAsText(file);
+    }
 }
 
 function startScan() {

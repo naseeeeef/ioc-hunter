@@ -25,25 +25,35 @@ export class IOCParser {
         // 1. Extract IPs
         const ipMatches = text.match(ipv4Regex);
         if (ipMatches) {
-            ipMatches.forEach(ip => ips.add(ip));
+            ipMatches.forEach(ip => {
+                const trimmedIp = ip.trim();
+                if (trimmedIp) ips.add(trimmedIp);
+            });
         }
 
         // 2. Extract Domains
         const domainMatches = text.match(domainRegex);
         if (domainMatches) {
             domainMatches.forEach(domain => {
-                const lowerDomain = domain.toLowerCase();
-                // Ensure the matched domain is not already categorized as an IP
-                if (!ips.has(lowerDomain) && !lowerDomain.startsWith('www.') && !lowerDomain.includes('@')) {
-                    domains.add(lowerDomain);
-                } else if (lowerDomain.startsWith('www.')) {
-                    // strip www if present
-                    domains.add(lowerDomain.replace('www.', ''));
+                let d = domain.toLowerCase().trim();
+                
+                // Normalization: Remove common prefixes/suffixes that might be in the text
+                d = d.replace(/^(https?:\/\/)/, ''); // Remove protocol if any
+                d = d.replace(/[\/]+$/, ''); // Remove trailing slashes
+                
+                // Strip 'www.' to normalize 'www.google.com' and 'google.com' to the same entry
+                if (d.startsWith('www.')) {
+                    d = d.substring(4);
+                }
+
+                // Validation: Ensure it's not an IP, not an email, and actually has a TLD-like structure
+                if (d && !ips.has(d) && !d.includes('@') && d.includes('.')) {
+                    domains.add(d);
                 }
             });
         }
 
-        // Format results
+        // Format unique results
         const results = [];
         
         ips.forEach(ip => {
@@ -51,9 +61,7 @@ export class IOCParser {
         });
         
         domains.forEach(domain => {
-            if (!ips.has(domain)) { // ultimate safety check
-               results.push({ value: domain, type: 'domain' });
-            }
+            results.push({ value: domain, type: 'domain' });
         });
 
         return results;

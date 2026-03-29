@@ -15,6 +15,9 @@
     
     <!-- Main Style -->
     <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Excel Parser Library (SheetJS) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -58,9 +61,9 @@
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                            <span>Upload .txt or .csv</span>
+                            <span>Upload .txt, .csv or Excel (.xlsx, .xls)</span>
                         </label>
-                        <input type="file" id="fileUpload" accept=".txt,.csv" />
+                        <input type="file" id="fileUpload" accept=".txt,.csv,.xlsx,.xls" />
                         <span id="fileNameDisplay" class="file-name"></span>
                     </div>
                 </div>
