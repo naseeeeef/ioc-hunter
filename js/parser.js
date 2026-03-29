@@ -19,11 +19,21 @@ export class IOCParser {
     static parse(text) {
         if (!text || typeof text !== 'string') return [];
 
+        // 1. Refang the text first (standard security obfuscation removal)
+        let cleanedText = text
+            .replace(/\[\.\]/g, '.')        // 8.8[.]8[.]8 -> 8.8.8.8
+            .replace(/\(\.\)/g, '.')        // 8.8(.)8(.)8 -> 8.8.8.8
+            .replace(/\[:\]/g, ':')         // hxxp[:]// -> hxxp://
+            .replace(/\(:\)/g, ':')         // hxxp(:)// -> hxxp://
+            .replace(/\bhxxp/gi, 'http')    // hxxp -> http
+            .replace(/\[at\]/gi, '@')       // example[at]gmail[.]com
+            .replace(/\(at\)/gi, '@');
+
         const ips = new Set();
         const domains = new Set();
 
-        // 1. Extract IPs
-        const ipMatches = text.match(ipv4Regex);
+        // 2. Extract IPs from cleaned text
+        const ipMatches = cleanedText.match(ipv4Regex);
         if (ipMatches) {
             ipMatches.forEach(ip => {
                 const trimmedIp = ip.trim();
@@ -31,23 +41,39 @@ export class IOCParser {
             });
         }
 
-        // 2. Extract Domains
-        const domainMatches = text.match(domainRegex);
+        // 3. Extract Domains and convert URLs to Hostnames
+        const domainMatches = cleanedText.match(domainRegex);
         if (domainMatches) {
-            domainMatches.forEach(domain => {
-                let d = domain.toLowerCase().trim();
+            domainMatches.forEach(match => {
+                let d = match.toLowerCase().trim();
                 
-                // Normalization: Remove common prefixes/suffixes that might be in the text
-                d = d.replace(/^(https?:\/\/)/, ''); // Remove protocol if any
-                d = d.replace(/[\/]+$/, ''); // Remove trailing slashes
+                // If it looks like a full URL, we only want the domain
+                if (d.includes('://') || d.includes('/')) {
+                    try {
+                        const urlToParse = d.includes('://') ? d : 'http://' + d;
+                        const url = new URL(urlToParse);
+                        d = url.hostname;
+                    } catch (e) {
+                        // Fallback: take only the part before first slash or query param
+                        d = d.replace(/^(https?:\/\/)/, '');
+                        d = d.split(/[/?#]/)[0];
+                    }
+                }
                 
-                // Strip 'www.' to normalize 'www.google.com' and 'google.com' to the same entry
+                // Normalization: Strip 'www.' to ensure 'www.google.com' and 'google.com' are identical
                 if (d.startsWith('www.')) {
                     d = d.substring(4);
                 }
 
-                // Validation: Ensure it's not an IP, not an email, and actually has a TLD-like structure
-                if (d && !ips.has(d) && !d.includes('@') && d.includes('.')) {
+                // Final cleanup: Remove any trailing dots
+                d = d.replace(/\.+$/, '');
+
+                // Validation: 
+                // - Ensure it's not an IP (Set handled)
+                // - Ensure it has a dot (valid domain structure)
+                // - Ensure no brackets/parentheses remained
+                if (d && !ips.has(d) && !d.includes('@') && d.includes('.') && 
+                    !d.includes('[') && !d.includes(']') && !d.includes('(') && !d.includes(')')) {
                     domains.add(d);
                 }
             });
