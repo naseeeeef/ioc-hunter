@@ -4,16 +4,18 @@ Bulk IOC Hunter is a modern, responsive web application designed for security an
 
 ## Features
 
-- **Bulk Processing**: Paste a list of IOCs or upload a text file to scan hundreds of indicators at once.
-- **Smart Parsing**: Automatically extracts IPs and domains using regex – no need to manually clean up your input data.
-- **VirusTotal Integration**: Queries the VirusTotal v3 Public API for every indicator and displays comprehensive results.
-- **Rate-Limit Handling**: Automatically manages and respects VirusTotal's API rate limits (e.g., waiting 15 seconds per request for Free Tier keys).
+- **Bulk Processing**: Paste large lists of IOCs or upload files (**Excel (.xlsx, .xls)**, CSV, or Text) to scan hundreds of indicators at once.
+- **Advanced Normalization**: Automatically refangs security-obfuscated indicators (e.g., `8.8[.]8[.]8` → `8.8.8.8`, `example(dot)com` → `example.com`).
+- **Smart Parsing**: Strictly extracts only **IP Addresses** and **Domains**. It automatically ignores dates, hashes, and other irrelevant metadata found in raw threat reports.
+- **URL to Domain Conversion**: If a full URL is provided (e.g., `https://malicious.rocks/payload`), the tool automatically extracts only the clean domain (`malicious.rocks`).
+- **VirusTotal Implementation**: Queries the VirusTotal v3 Public API and displays comprehensive results including stats, country, ISP, and community tags.
+- **Configurable API Speed**: Choose your API tier (Free vs Premium) to optimize scanning speed from 15s delay down to **0.5s per request**.
 - **Pause & Resume**: Easily pause and resume large scans without losing your progress.
 - **Filtering & Search**: Quickly filter results by verdict (Malicious, Suspicious, Clean, Unknown) or search for specific IOCs.
 - **Export Data**: Export your detailed scan results to CSV or JSON formats for reporting or further analysis.
-- **Modern UI/UX**: Features a sleek, dark-themed interface with real-time progress tracking, visual badges, and micro-animations.
+- **Modern UI/UX**: Features a sleek, dark-themed interface with real-time progress tracking, visual badges, and glassmorphism design.
 - **Mobile Responsive**: Fully optimized for mobile screens, allowing analysts to check IOCs on the go.
-- **Corporate Firewall Bypass**: Built-in support for custom private proxies (like Cloudflare Workers) to bypass strict Enterprise EDR and SIEM filters.
+- **Corporate Firewall Bypass**: Built-in support for custom private proxies (like Cloudflare Workers) to bypass strict Enterprise SIEM filters.
 
 ## Prerequisites
 

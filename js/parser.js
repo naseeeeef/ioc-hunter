@@ -3,12 +3,13 @@
  * Uses exact regex matching to avoid false positives.
  */
 
-// Regex for IPv4
-const ipv4Regex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/g;
+// Regex for IPv4 - Slightly more permissive on boundaries to handle CSV mashups
+const ipv4Regex = /(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/g;
 
 // Regex for basic domain matching (excludes IPs and protocol handlers)
 // Validates common TLDs to avoid matching random sentences
-const domainRegex = /\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,24}\b/g;
+// Regex for basic domain matching - More permissive on boundaries
+const domainRegex = /(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,24}/g;
 
 export class IOCParser {
     /**
@@ -23,6 +24,8 @@ export class IOCParser {
         let cleanedText = text
             .replace(/\[\.\]/g, '.')        // 8.8[.]8[.]8 -> 8.8.8.8
             .replace(/\(\.\)/g, '.')        // 8.8(.)8(.)8 -> 8.8.8.8
+            .replace(/\[dot\]/gi, '.')      // example[dot]com
+            .replace(/\(dot\)/gi, '.')      // example(dot)com
             .replace(/\[:\]/g, ':')         // hxxp[:]// -> hxxp://
             .replace(/\(:\)/g, ':')         // hxxp(:)// -> hxxp://
             .replace(/\bhxxp/gi, 'http')    // hxxp -> http
