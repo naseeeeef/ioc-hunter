@@ -4,13 +4,14 @@ import { VTApi } from './vt-api.js';
 // ---- Data Structures & State ----
 let API_KEY = localStorage.getItem('vt_apikey') || '';
 let PROXY_URL = localStorage.getItem('vt_proxy') || '';
+let API_TIER = localStorage.getItem('vt_tier') || 'FREE';
 let currentQueue = []; // Items to process
 let results = []; // Items processed
 let isPaused = true;
 let isProcessing = false;
 
-// 15 seconds required between requests on Free Tier (4 per min)
-const RATE_LIMIT_MS = 15000; 
+// Dynamic rate limit based on tier
+let RATE_LIMIT_MS = 15000; 
 
 // ---- DOM Elements ----
 const UI = {
@@ -45,7 +46,11 @@ const UI = {
     exportBtn: document.getElementById('exportBtn'),
     exportMenu: document.getElementById('exportMenu'),
     exportCsvBtn: document.getElementById('exportCsvBtn'),
-    exportJsonBtn: document.getElementById('exportJsonBtn')
+    exportJsonBtn: document.getElementById('exportJsonBtn'),
+
+    apiTierSelect: document.getElementById('apiTierSelect'),
+    tierNotice: document.getElementById('tierNotice'),
+    rateLimitText: document.getElementById('rateLimitText')
 };
 
 // ---- Initialization ----
@@ -55,11 +60,20 @@ document.addEventListener('DOMContentLoaded', () => {
         UI.apiKeyModal.style.display = 'flex';
     }
 
+    updateRateLimitUI();
+
     // Attach Event Listeners
     UI.settingsBtn.addEventListener('click', () => {
         UI.apiKeyInput.value = API_KEY;
         UI.proxyInput.value = PROXY_URL;
+        UI.apiTierSelect.value = API_TIER;
+        updateRateLimitUI();
         UI.apiKeyModal.style.display = 'flex';
+    });
+
+    UI.apiTierSelect.addEventListener('change', () => {
+        API_TIER = UI.apiTierSelect.value;
+        updateRateLimitUI();
     });
     
     UI.closeApiModal.addEventListener('click', () => UI.apiKeyModal.style.display = 'none');
@@ -70,8 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key) {
             API_KEY = key;
             PROXY_URL = proxy;
+            API_TIER = UI.apiTierSelect.value;
+            
             localStorage.setItem('vt_apikey', key);
             localStorage.setItem('vt_proxy', proxy);
+            localStorage.setItem('vt_tier', API_TIER);
+            
+            updateRateLimitUI();
             UI.apiKeyModal.style.display = 'none';
         } else {
             alert('Please enter a valid API Key.');
@@ -178,6 +197,23 @@ function clearAll() {
         renderTable();
         setStatus('Idle', 'status-idle');
     }, 100);
+}
+
+// ---- Rate Limiting Helper ----
+function updateRateLimitUI() {
+    if (API_TIER === 'FREE') {
+        RATE_LIMIT_MS = 15000;
+        UI.tierNotice.innerHTML = '<strong>Free Tier Restrictions:</strong> You are limited to 4 requests per minute and 500 requests per day.';
+        UI.rateLimitText.textContent = 'Free Tier: 15s delay enforced';
+    } else if (API_TIER === 'STANDARD') {
+        RATE_LIMIT_MS = 4000;
+        UI.tierNotice.innerHTML = '<strong>Standard Tier:</strong> High speed mode (15 req/min).';
+        UI.rateLimitText.textContent = 'Standard Tier: 4s delay';
+    } else if (API_TIER === 'PREMIUM') {
+        RATE_LIMIT_MS = 500;
+        UI.tierNotice.innerHTML = '<strong>Premium Tier:</strong> Burst mode enabled. Please monitor your VT usage credits.';
+        UI.rateLimitText.textContent = 'Premium Tier: 0.5s delay';
+    }
 }
 
 // Keep track of the active timeout so it can be cleared easily if needed

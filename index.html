@@ -96,13 +96,13 @@
                     <div class="progress-bar-bg">
                         <div id="progressBar" class="progress-bar-fill"></div>
                     </div>
-                    <div class="rate-limit-warning">
+                    <div id="rateLimitWarning" class="rate-limit-warning">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
                             <line x1="12" y1="16" x2="12.01" y2="16"></line>
                         </svg>
-                        Free API: 15-second delay enforced between queries
+                        <span id="rateLimitText">Free Tier: 15s delay enforced</span>
                     </div>
                 </div>
             </section>
@@ -187,13 +187,22 @@
                     <input type="url" id="proxyInput" placeholder="https://my-proxy.workers.dev/?url=" autocomplete="off">
                     <small style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem;">Bypass corporate firewalls privately using Cloudflare Workers.</small>
                 </div>
+                <div class="input-group">
+                    <label for="apiTierSelect">API Request Speed</label>
+                    <select id="apiTierSelect" class="filter-select" style="width: 100%; height: 42px;">
+                        <option value="FREE">Free Tier (15s delay - 4 req/min)</option>
+                        <option value="STANDARD">Standard Tier (4s delay - 15 req/min)</option>
+                        <option value="PREMIUM">Premium Tier (0.5s delay - Burst Mode)</option>
+                    </select>
+                    <small style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem;">Higher speeds require a Premium VirusTotal API key.</small>
+                </div>
                 <div class="modal-notice">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="16" x2="12" y2="12"></line>
                         <line x1="12" y1="8" x2="12.01" y2="8"></line>
                     </svg>
-                    <span><strong>Free Tier Restrictions:</strong> You are limited to 4 requests per minute and 500 requests per day.</span>
+                    <span id="tierNotice"><strong>Free Tier Restrictions:</strong> You are limited to 4 requests per minute and 500 requests per day.</span>
                 </div>
             </div>
             <div class="modal-footer">
