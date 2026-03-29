@@ -15,38 +15,45 @@ export class VTApi {
      */
     async scanIoc(ioc, type) {
         const targetUrl = type === 'ip' ? `${this.baseUrl}/ip_addresses/${ioc}` : `${this.baseUrl}/domains/${ioc}`;
-        // VirusTotal blocks direct frontend CORS requests, so we must route through a secure proxy
-        const endpoint = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         
-        try {
-            const response = await fetch(endpoint, {
-                method: 'GET',
-                headers: {
-                    'x-apikey': this.apiKey,
-                    'Accept': 'application/json'
+        // Use multiple fallback CORS proxies, just in case one is down or blocked by an adblocker
+        const endpoints = [
+            `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+            `https://thingproxy.freeboard.io/fetch/${targetUrl}`
+        ];
+
+        let lastError = null;
+
+        for (const endpoint of endpoints) {
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'x-apikey': this.apiKey,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.status === 429) throw new Error('RATE_LIMIT');
+                if (response.status === 403) throw new Error('FORBIDDEN');
+                if (response.status === 404) return this._formatEmptyResponse(ioc, type);
+                if (!response.ok) throw new Error(`HTTP_${response.status}`);
+
+                const data = await response.json();
+                return this._formatResponse(ioc, type, data);
+            } catch (error) {
+                // If the error is explicitly rate limiting or forbidden, bubble it up immediately
+                if (error.message === 'RATE_LIMIT' || error.message === 'FORBIDDEN') {
+                    throw error;
                 }
-            });
-
-            if (response.status === 429) {
-                throw new Error('RATE_LIMIT');
+                console.warn(`Proxy ${endpoint} failed for ${ioc}:`, error);
+                lastError = error;
+                // Move to the next proxy in the array...
             }
-            if (response.status === 403) {
-                throw new Error('FORBIDDEN');
-            }
-            if (response.status === 404) {
-                // Not found implies no malicious detections, treat as "unknown" clean
-                return this._formatEmptyResponse(ioc, type);
-            }
-            if (!response.ok) {
-                throw new Error(`HTTP_${response.status}`);
-            }
-
-            const data = await response.json();
-            return this._formatResponse(ioc, type, data);
-        } catch (error) {
-            console.error(`Error scanning ${ioc}:`, error);
-            throw error; // Rethrow to let queue handler manage delays etc
         }
+        
+        console.error(`All CORS proxies failed for ${ioc}:`, lastError);
+        throw lastError; // Rethrow to let queue handler manage delays etc
     }
 
     _formatResponse(ioc, type, jsonData) {
