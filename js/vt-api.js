@@ -2,8 +2,9 @@
  * Handle API interactions with VirusTotal v3 Public API
  */
 export class VTApi {
-    constructor(apiKey) {
+    constructor(apiKey, customProxy) {
         this.apiKey = apiKey;
+        this.customProxy = customProxy;
         this.baseUrl = 'https://www.virustotal.com/api/v3';
     }
 
@@ -16,13 +17,27 @@ export class VTApi {
     async scanIoc(ioc, type) {
         const targetUrl = type === 'ip' ? `${this.baseUrl}/ip_addresses/${ioc}` : `${this.baseUrl}/domains/${ioc}`;
         
+        const endpoints = [];
+
+        // If a private proxy is provided, prioritize it
+        if (this.customProxy) {
+            let pUrl = this.customProxy.trim();
+            if (pUrl.endsWith('=')) {
+                endpoints.push(`${pUrl}${encodeURIComponent(targetUrl)}`);
+            } else if (pUrl.includes('?url=')) {
+                // If it already contains ?url= parameter, append but replace original value
+                endpoints.push(`${pUrl.split('?url=')[0]}?url=${encodeURIComponent(targetUrl)}`);
+            } else {
+                // Standard append
+                endpoints.push(`${pUrl}${pUrl.includes('?') ? '&' : '?'}url=${encodeURIComponent(targetUrl)}`);
+            }
+        }
+
         // Use multiple fallback CORS proxies, just in case one is down or blocked by an adblocker
         // The final fallback is a direct connection (targetUrl), which requires a "CORS Unblock" browser extension.
-        const endpoints = [
-            `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-            `https://thingproxy.freeboard.io/fetch/${targetUrl}`,
-            targetUrl 
-        ];
+        endpoints.push(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+        endpoints.push(`https://thingproxy.freeboard.io/fetch/${targetUrl}`);
+        endpoints.push(targetUrl);
 
         let lastError = null;
 

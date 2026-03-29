@@ -3,6 +3,7 @@ import { VTApi } from './vt-api.js';
 
 // ---- Data Structures & State ----
 let API_KEY = localStorage.getItem('vt_apikey') || '';
+let PROXY_URL = localStorage.getItem('vt_proxy') || '';
 let currentQueue = []; // Items to process
 let results = []; // Items processed
 let isPaused = true;
@@ -15,6 +16,7 @@ const RATE_LIMIT_MS = 15000;
 const UI = {
     apiKeyModal: document.getElementById('apiKeyModal'),
     apiKeyInput: document.getElementById('apiKeyInput'),
+    proxyInput: document.getElementById('proxyInput'),
     saveApiKeyBtn: document.getElementById('saveApiKeyBtn'),
     closeApiModal: document.getElementById('closeApiModal'),
     settingsBtn: document.getElementById('apiKeySettingsBtn'),
@@ -56,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach Event Listeners
     UI.settingsBtn.addEventListener('click', () => {
         UI.apiKeyInput.value = API_KEY;
+        UI.proxyInput.value = PROXY_URL;
         UI.apiKeyModal.style.display = 'flex';
     });
     
@@ -63,9 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     UI.saveApiKeyBtn.addEventListener('click', () => {
         const key = UI.apiKeyInput.value.trim();
+        const proxy = UI.proxyInput.value.trim();
         if (key) {
             API_KEY = key;
+            PROXY_URL = proxy;
             localStorage.setItem('vt_apikey', key);
+            localStorage.setItem('vt_proxy', proxy);
             UI.apiKeyModal.style.display = 'none';
         } else {
             alert('Please enter a valid API Key.');
@@ -179,7 +185,7 @@ let timerTimeout = null;
 
 async function processQueueLoop() {
     isProcessing = true;
-    const vtApi = new VTApi(API_KEY);
+    const vtApi = new VTApi(API_KEY, PROXY_URL);
 
     while (currentQueue.length > 0 && !isPaused) {
         setStatus('Running', 'status-running');
