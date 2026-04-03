@@ -118,31 +118,6 @@
                 </div>
             </section>
 
-            <!-- Summary Cards -->
-            <section class="panel glass-panel stats-panel">
-                <div class="panel-title">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                    Summary
-                </div>
-                <div class="stat-cards">
-                    <div class="stat-card">
-                        <div class="stat-value" id="statTotal" style="font-size: 1.5rem;">0 / 0</div>
-                        <div class="stat-label">Processed / Total</div>
-                    </div>
-                    <div class="stat-card stat-card-matched">
-                        <div class="stat-value" id="statMatched">0</div>
-                        <div class="stat-label">Matched</div>
-                    </div>
-                    <div class="stat-card stat-card-danger">
-                        <div class="stat-value" id="statMalicious">0</div>
-                        <div class="stat-label">Malicious</div>
-                    </div>
-                </div>
-                <div class="stat-row" style="margin-top: 0.75rem;">
-                    <span>Status:</span>
-                    <strong id="statStatus" class="status-idle">Idle</strong>
-                </div>
-            </section>
 
             <!-- Progress -->
             <div id="progressContainer" class="panel glass-panel progress-panel" style="display:none;">
@@ -163,6 +138,28 @@
 
         <!-- ── Right Column: Results ── -->
         <section class="right-col panel glass-panel results-panel">
+            
+            <!-- Summary Header at top of results -->
+            <div class="stats-panel" style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--glass-border); background: rgba(0,0,0,0.15);">
+                <div class="stat-cards" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal" style="font-size: 1.5rem;">0 / 0</div>
+                        <div class="stat-label">Processed / Total</div>
+                    </div>
+                    <div class="stat-card stat-card-matched">
+                        <div class="stat-value" id="statMatched" style="font-size: 1.5rem;">0</div>
+                        <div class="stat-label">Matched Exposure</div>
+                    </div>
+                    <div class="stat-card stat-card-danger">
+                        <div class="stat-value" id="statMalicious" style="font-size: 1.5rem;">0</div>
+                        <div class="stat-label">Malicious</div>
+                    </div>
+                    <div class="stat-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; border-color: rgba(255,255,255,0.08);">
+                        <div class="stat-label" style="margin-bottom: 0.4rem;">Engine Status</div>
+                        <strong id="statStatus" class="status-idle" style="font-size: 0.9rem;">Idle</strong>
+                    </div>
+                </div>
+            </div>
             <div class="results-header">
                 <h2 class="results-title">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
