@@ -2,10 +2,10 @@
  * app.js — IOC Hunter: Internal Exposure & Correlation Engine
  * Main orchestrator. Imports modular components.
  */
-import { IOCParser }    from './parser.js';
-import { VTClient }     from './vtClient.js';
-import { UIRenderer }   from './uiRenderer.js';
-import { FileProcessor } from './fileReader.js';
+import { IOCParser }    from './parser.js?v=1.2';
+import { VTClient }     from './vtClient.js?v=1.2';
+import { UIRenderer }   from './uiRenderer.js?v=1.2';
+import { FileProcessor } from './fileReader.js?v=1.2';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 let API_KEY      = localStorage.getItem('vt_apikey') || '';
