@@ -129,6 +129,15 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.removeCompanyBtn.addEventListener('click', clearCompanyBaseline);
     loadCompanyBaselineFromStorage();
 
+    // Clickable stats card filtering
+    const cardMatched = $('cardMatched');
+    if (cardMatched) {
+        cardMatched.addEventListener('click', () => {
+            UI.verdictFilter.value = 'ALL_MATCHES';
+            rerender();
+        });
+    }
+
     rerender();
 });
 
