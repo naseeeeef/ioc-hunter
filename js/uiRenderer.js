@@ -23,8 +23,9 @@ export class UIRenderer {
             let matchFilter = true;
             if (filter === 'ALL_MATCHES')   matchFilter = r.isMatched;
             if (filter === 'RISKY_MATCHES') matchFilter = r.isMatched && (r.verdict === 'MALICIOUS' || r.verdict === 'SUSPICIOUS');
-            if (filter === 'MALICIOUS')     matchFilter = r.isMatched && r.verdict === 'MALICIOUS';
-            if (filter === 'SUSPICIOUS')    matchFilter = r.isMatched && r.verdict === 'SUSPICIOUS';
+            if (filter === 'UNMATCHED_MALICIOUS') matchFilter = !r.isMatched && r.verdict === 'MALICIOUS';
+            if (filter === 'MALICIOUS')     matchFilter = r.verdict === 'MALICIOUS';
+            if (filter === 'SUSPICIOUS')    matchFilter = r.verdict === 'SUSPICIOUS';
             // filter === 'ALL' → matchFilter stays true (show everything)
             return matchSearch && matchFilter;
         });

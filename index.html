@@ -168,10 +168,11 @@
                 <div class="results-actions">
                     <select id="verdictFilter" class="filter-select">
                         <option value="ALL">All Results</option>
-                        <option value="ALL_MATCHES">Matched Only</option>
-                        <option value="RISKY_MATCHES">Risky Matches</option>
-                        <option value="MALICIOUS">Malicious Only</option>
-                        <option value="SUSPICIOUS">Suspicious Only</option>
+                        <option value="ALL_MATCHES">Matched Internal Only</option>
+                        <option value="RISKY_MATCHES">Matched (Malicious &amp; Suspicious)</option>
+                        <option value="UNMATCHED_MALICIOUS">External Malicious (Unmatched)</option>
+                        <option value="MALICIOUS">All Malicious Only</option>
+                        <option value="SUSPICIOUS">All Suspicious Only</option>
                     </select>
                     <input type="text" id="searchInput" placeholder="Search IOC..." class="search-input">
                     <div class="dropdown">
