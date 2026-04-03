@@ -44,22 +44,7 @@
         </header>
 
 
-        <!-- Tab Navigation -->
-        <nav class="tab-nav">
-            <button class="tab-btn active" data-tab="vt-hunt">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                </svg>
-                <span>VT Live Hunt</span>
-            </button>
-            <button class="tab-btn" data-tab="ioc-dedup">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-                    <polyline points="8 12 12 16 20 8"></polyline>
-                </svg>
-                <span>IOC Deduplicator</span>
-            </button>
-        </nav>
+
 
         <!-- View 1: VT Live Hunt -->
         <main id="vtHuntView" class="tab-view active">
@@ -188,121 +173,7 @@
             </div>
         </main>
 
-        <!-- View 2: IOC Deduplicator -->
-        <main id="iocDedupView" class="tab-view">
-            <div class="dedup-grid">
-                <!-- Left: Master Data -->
-                <section class="panel master-panel glass-panel">
-                    <div class="panel-header">
-                        <h2>1. Master IOC Files (Baseline)</h2>
-                        <p class="subtitle">Upload existing known IOCs to deduplicate against.</p>
-                    </div>
-                    
-                    <div class="input-controls">
-                        <div class="file-upload-wrapper multiple">
-                            <label for="masterUpload" class="file-upload-label">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                    <line x1="12" y1="18" x2="12" y2="12"></line>
-                                    <line x1="9" y1="15" x2="15" y2="15"></line>
-                                </svg>
-                                <span>Select Master Files (Multiple OK)</span>
-                            </label>
-                            <input type="file" id="masterUpload" accept=".txt,.csv,.xlsx,.xls,.json" multiple />
-                        </div>
-                        <div id="masterFileList" class="chip-container"></div>
-                    </div>
 
-                    <div class="master-stats">
-                        <div class="stat-badge">
-                            <span>Master Dataset Size:</span>
-                            <strong id="masterTotalCount">0</strong>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Middle: New Data -->
-                <section class="panel new-data-panel glass-panel">
-                    <div class="panel-header">
-                        <h2>2. New Threat Data</h2>
-                        <p class="subtitle">Messy logs or new report to extract from.</p>
-                    </div>
-                    
-                    <div class="input-controls">
-                        <div class="file-upload-wrapper">
-                            <label for="newDataUpload" class="file-upload-label secondary">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                    <polyline points="17 8 12 3 7 8"></polyline>
-                                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                                </svg>
-                                <span>Upload New File</span>
-                            </label>
-                            <input type="file" id="newDataUpload" accept=".txt,.csv,.xlsx,.xls,.json,.log" />
-                            <span id="newDataFileName" class="file-name"></span>
-                        </div>
-                        
-                        <div class="divider"><span>OR PASTE RAW TEXT</span></div>
-                        
-                        <textarea id="dedupManualInput" placeholder="Paste logs, alerts, or mixed text here..."></textarea>
-                    </div>
-
-                    <div class="processing-options">
-                        <label class="toggle-container">
-                            <input type="checkbox" id="strictFilterToggle" checked>
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">Strict Malicious Filtering</span>
-                            <div class="info-tooltip">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                <span class="tooltip-text">Excludes Private IPs, Google/MS domains, and internal TLDs.</span>
-                            </div>
-                        </label>
-                        
-                        <button id="processDedupBtn" class="btn btn-primary btn-large">Process & Deduplicate</button>
-                    </div>
-                </section>
-
-                <!-- Right: Processed Output -->
-                <section class="panel output-panel glass-panel">
-                    <div class="panel-header">
-                        <h2>3. Unique Malicious Result</h2>
-                        <div class="output-actions-header">
-                            <button id="copyResultBtn" class="btn btn-outline btn-sm">Copy</button>
-                            <button id="downloadResultBtn" class="btn btn-outline btn-sm">Download .txt</button>
-                        </div>
-                    </div>
-
-                    <div class="dedup-stats-banner">
-                        <div class="dedup-stat-item">
-                            <span class="label">Total Scanned</span>
-                            <span id="statScannedCount" class="value">0</span>
-                        </div>
-                        <div class="dedup-stat-item highlight">
-                            <span class="label">Malicious Found</span>
-                            <span id="statMaliciousCount" class="value">0</span>
-                        </div>
-                        <div class="dedup-stat-item">
-                            <span class="label">Duplicates Removed</span>
-                            <span id="statDupCount" class="value">0</span>
-                        </div>
-                        <div class="dedup-stat-item unique">
-                            <span class="label">Final Unique</span>
-                            <span id="statUniqueCount" class="value">0</span>
-                        </div>
-                    </div>
-
-                    <div class="output-container">
-                        <div id="dedupOutputBox" class="result-box-mono" data-placeholder="Results will appear here..."></div>
-                    </div>
-
-                    <div id="dedupLoader" class="loader-overlay" style="display: none;">
-                        <div class="spinner"></div>
-                        <span>Processing large datasets...</span>
-                    </div>
-                </section>
-            </div>
-        </main>
     </div>
 
     <!-- API Key Modal -->
