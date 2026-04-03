@@ -3,224 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IOC Hunter - Bulk SOC Intelligence Setup</title>
-    
-    <!-- Using Google Fonts (Inter) -->
+    <title>IOC Hunter — Internal Exposure & Correlation Engine</title>
+    <meta name="description" content="Bulk IOC Hunter: scan IPs and domains against VirusTotal and correlate against your company asset baseline to identify internal exposures.">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    
-    <!-- Main Style -->
     <link rel="stylesheet" href="css/style.css">
-    
-    <!-- Excel Parser Library (SheetJS) -->
+
+    <!-- SheetJS for Excel parsing (loaded globally, used by fileReader.js) -->
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        
-        <!-- Header -->
-        <header class="glass-header">
-            <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="22" y1="12" x2="18" y2="12"></line>
-                    <line x1="6" y1="12" x2="2" y2="12"></line>
-                    <line x1="12" y1="6" x2="12" y2="2"></line>
-                    <line x1="12" y1="22" x2="12" y2="18"></line>
-                </svg>
-                <h1>IOC Hunter</h1>
-            </div>
-            
-            <button id="apiKeySettingsBtn" class="btn btn-outline" title="Configure API Key">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
-                </svg>
-                <span>Setup API Key</span>
-            </button>
-        </header>
+<div class="app-container">
 
+    <!-- ══════════════════════════════════════════════════════════
+         HEADER
+    ══════════════════════════════════════════════════════════ -->
+    <header class="glass-header">
+        <div class="logo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="22" y1="12" x2="18" y2="12"></line>
+                <line x1="6"  y1="12" x2="2"  y2="12"></line>
+                <line x1="12" y1="6"  x2="12" y2="2"></line>
+                <line x1="12" y1="22" x2="12" y2="18"></line>
+            </svg>
+            <h1>IOC Hunter</h1>
+            <span class="header-subtitle">Internal Exposure Engine</span>
+        </div>
+        <button id="apiKeySettingsBtn" class="btn btn-outline" title="Configure API Key">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>API Settings</span>
+        </button>
+    </header>
 
+    <!-- ══════════════════════════════════════════════════════════
+         MAIN DASHBOARD
+    ══════════════════════════════════════════════════════════ -->
+    <main class="dashboard-grid">
 
+        <!-- ── Left Column: Controls ── -->
+        <aside class="left-col">
 
-        <!-- View 1: VT Live Hunt -->
-        <main id="vtHuntView" class="tab-view active">
-            <div class="dashboard-grid">
-            
-            <!-- Left Side: Input & Controls -->
-            <section class="panel input-panel">
-                <h2>Import Indicators</h2>
-                <p class="subtitle">Extracts domains and IPs automatically.</p>
-                
-                <div class="input-controls">
-                    <textarea id="iocInput" placeholder="Paste IPs or Domains here (comma separated, newlines, etc)...&#10;&#10;E.g.&#10;1.1.1.1&#10;google.com&#10;8.8.8.8, evil-malware.com"></textarea>
-                    
-                    <div class="file-upload-wrapper">
-                        <label for="fileUpload" class="file-upload-label">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                            <span>Upload .txt, .csv or Excel (.xlsx, .xls)</span>
-                        </label>
-                        <input type="file" id="fileUpload" accept=".txt,.csv,.xlsx,.xls" />
-                        <span id="fileNameDisplay" class="file-name"></span>
-                    </div>
+            <!-- Upload Panel -->
+            <section class="panel glass-panel upload-panel">
+                <div class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload Files
                 </div>
 
-                <div class="action-buttons">
-                    <button id="startBtn" class="btn btn-primary">Parse & Start Scan</button>
-                    <button id="pauseBtn" class="btn btn-warning" disabled>Pause</button>
-                    <button id="clearBtn" class="btn btn-danger">Clear</button>
-                </div>
-                
-                <!-- Queue Stats -->
-                <div class="queue-stats glass-panel">
-                    <div class="stat-row">
-                        <span>Total Parsed:</span>
-                        <strong id="statTotal">0</strong>
+                <!-- Hidden file inputs (outside drop zones for reliability) -->
+                <input type="file" id="iocFileInput" accept=".txt,.csv,.xlsx,.xls,.log" class="hidden-file">
+                <input type="file" id="companyFileInput" accept=".txt,.csv,.xlsx,.xls,.log" class="hidden-file">
+
+                <!-- Threat IOC input -->
+                <div class="upload-block">
+                    <label class="upload-label">Threat IOC File <span class="badge badge-info">IPs / Domains</span></label>
+                    <div class="drop-zone" id="iocDropZone">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span>Click here or drag &amp; drop a file</span>
+                        <small>Supports .txt &middot; .csv &middot; .xlsx</small>
                     </div>
-                    <div class="stat-row">
-                        <span>Processed:</span>
-                        <strong id="statProcessed">0</strong>
-                    </div>
-                    <div class="stat-row">
-                        <span>Status:</span>
-                        <strong id="statStatus" class="status-idle">Idle</strong>
-                    </div>
+                    <span id="iocFileName" class="file-status"></span>
                 </div>
 
-                <!-- Progress / API Delay Timer -->
-                <div id="progressContainer" class="progress-container" style="display: none;">
-                    <div class="progress-details">
-                        <span id="progressText">Processing 0/0...</span>
-                        <span id="timerText" class="timer-text">Next request in: --s</span>
+                <div class="divider">OR paste manually</div>
+
+                <textarea id="iocInput" placeholder="Paste IPs or Domains...&#10;&#10;Supports:&#10;1.1.1.1&#10;evil.com&#10;1.1[.]1[.]1 (refanged)&#10;hxxp://mal.com/page"></textarea>
+
+                <!-- Company baseline upload -->
+                <div class="upload-block" style="margin-top: 1rem;">
+                    <label class="upload-label">
+                        Company Asset File
+                        <span class="badge badge-info">Baseline</span>
+                        <span class="badge badge-secure" title="Never sent to any server">🔒 LOCAL ONLY</span>
+                    </label>
+                    <div class="drop-zone drop-zone-company" id="companyDropZone">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <span>Click here or drag &amp; drop company file</span>
+                        <small>Supports .txt &middot; .csv &middot; .xlsx &middot; IPs/Domains only</small>
                     </div>
-                    <div class="progress-bar-bg">
-                        <div id="progressBar" class="progress-bar-fill"></div>
-                    </div>
-                    <div id="rateLimitWarning" class="rate-limit-warning">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                        <span id="rateLimitText">Free Tier: 15s delay enforced</span>
-                    </div>
+                    <span id="companyFileName" class="file-status"></span>
+                    <span id="companyStatus" class="company-status"></span>
                 </div>
             </section>
 
-            <!-- Right Side: Threat Results -->
-            <section class="panel results-panel glass-panel">
-                <div class="results-header">
-                    <h2>Analysis Results</h2>
-                    <div class="results-actions">
-                        <select id="verdictFilter" class="filter-select">
-                            <option value="ALL">All Verdicts</option>
-                            <option value="THREATS">Threats (Malicious/Suspicious)</option>
-                            <option value="CLEAN">Clean</option>
-                        </select>
-                        <input type="text" id="searchInput" placeholder="Search IOC..." class="search-input">
-                        
-                        <div class="dropdown">
-                            <button class="btn btn-outline dropdown-toggle" id="exportBtn">
-                                <span>Export</span>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
-                            </button>
-                            <div class="dropdown-menu" id="exportMenu" style="display: none;">
-                                <a href="#" id="exportCsvBtn">Download CSV</a>
-                                <a href="#" id="exportJsonBtn">Download JSON</a>
-                            </div>
+            <!-- Controls -->
+            <section class="panel glass-panel controls-panel">
+                <div class="action-buttons">
+                    <button id="startBtn" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Start Scan
+                    </button>
+                    <button id="pauseBtn" class="btn btn-warning" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                        Pause
+                    </button>
+                    <button id="clearBtn" class="btn btn-danger">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        Clear
+                    </button>
+                </div>
+            </section>
+
+            <!-- Summary Cards -->
+            <section class="panel glass-panel stats-panel">
+                <div class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Summary
+                </div>
+                <div class="stat-cards">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal" style="font-size: 1.5rem;">0 / 0</div>
+                        <div class="stat-label">Processed / Total</div>
+                    </div>
+                    <div class="stat-card stat-card-matched">
+                        <div class="stat-value" id="statMatched">0</div>
+                        <div class="stat-label">Matched</div>
+                    </div>
+                    <div class="stat-card stat-card-danger">
+                        <div class="stat-value" id="statMalicious">0</div>
+                        <div class="stat-label">Malicious</div>
+                    </div>
+                </div>
+                <div class="stat-row" style="margin-top: 0.75rem;">
+                    <span>Status:</span>
+                    <strong id="statStatus" class="status-idle">Idle</strong>
+                </div>
+            </section>
+
+            <!-- Progress -->
+            <div id="progressContainer" class="panel glass-panel progress-panel" style="display:none;">
+                <div class="progress-details">
+                    <span id="progressText">Processing...</span>
+                    <span id="timerText" class="timer-text"></span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="progressBar" class="progress-bar-fill"></div>
+                </div>
+                <div class="rate-limit-warning">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span id="rateLimitText">Free Tier: 15s delay</span>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- ── Right Column: Results ── -->
+        <section class="right-col panel glass-panel results-panel">
+            <div class="results-header">
+                <h2 class="results-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Matched Exposure Results
+                </h2>
+                <div class="results-actions">
+                    <select id="verdictFilter" class="filter-select">
+                        <option value="ALL">All Results</option>
+                        <option value="ALL_MATCHES">Matched Only</option>
+                        <option value="RISKY_MATCHES">Risky Matches</option>
+                        <option value="MALICIOUS">Malicious Only</option>
+                        <option value="SUSPICIOUS">Suspicious Only</option>
+                    </select>
+                    <input type="text" id="searchInput" placeholder="Search IOC..." class="search-input">
+                    <div class="dropdown">
+                        <button class="btn btn-outline" id="exportBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Export
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        <div class="dropdown-menu" id="exportMenu" style="display:none;">
+                            <a href="#" id="exportCSVBtn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+                                Export as CSV
+                            </a>
+                            <a href="#" id="exportJSONBtn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                Export as JSON
+                            </a>
                         </div>
                     </div>
                 </div>
-
-                <div class="table-container">
-                    <table id="resultsTable" class="modern-table">
-                        <thead>
-                            <tr>
-                                <th>IOC</th>
-                                <th>Type</th>
-                                <th>Verdict</th>
-                                <th>Malicious</th>
-                                <th>Suspicious</th>
-                                <th>Harmless</th>
-                                <th>Country / ISP</th>
-                                <th>Tags</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resultsBody">
-                            <!-- Rows dynammically injected here -->
-                            <tr class="empty-state-row">
-                                <td colspan="9" class="empty-state">
-                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3; margin-bottom: 10px;">
-                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                    </svg>
-                                    <p>No results yet. Enter IOCs and start scanning.</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
             </div>
-        </main>
 
-
-    </div>
-
-    <!-- API Key Modal -->
-    <div id="apiKeyModal" class="modal-overlay" style="display: none;">
-        <div class="modal glass-panel">
-            <div class="modal-header">
-                <h3>Configure VirusTotal API</h3>
-                <button id="closeApiModal" class="btn-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
+            <div class="table-container">
+                <table class="modern-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Indicator</th>
+                            <th>Type</th>
+                            <th>Verdict</th>
+                            <th>VT Score</th>
+                            <th>Country</th>
+                            <th>ISP / Registrar</th>
+                            <th>Match Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <tr class="empty-state-row">
+                            <td colspan="8" class="empty-state">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity:0.2; margin-bottom:12px">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                                <p>No results yet. Upload files and start scanning.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="modal-body">
-                <p>Enter your VirusTotal v3 API Key to start hunting. The key is securely stored in your browser's local session and never sent to our servers.</p>
-                <div class="input-group">
-                    <label for="apiKeyInput">VT Public API Key</label>
-                    <input type="password" id="apiKeyInput" placeholder="x-apikey" autocomplete="off">
-                </div>
-                <div class="input-group">
-                    <label for="proxyInput" style="display: flex; align-items: center; gap: 4px;">Custom Proxy URL <span class="badge badge-clean" style="font-size: 0.6rem; padding: 2px 6px;">New</span></label>
-                    <input type="url" id="proxyInput" placeholder="https://my-proxy.workers.dev/?url=" autocomplete="off">
-                    <small style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem;">Bypass corporate firewalls privately using Cloudflare Workers.</small>
-                </div>
-                <div class="input-group">
-                    <label for="apiTierSelect">API Request Speed</label>
-                    <select id="apiTierSelect" class="filter-select" style="width: 100%; height: 42px;">
-                        <option value="FREE">Free Tier (15s delay - 4 req/min)</option>
-                        <option value="STANDARD">Standard Tier (4s delay - 15 req/min)</option>
-                        <option value="PREMIUM">Premium Tier (0.5s delay - Burst Mode)</option>
-                    </select>
-                    <small style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem;">Higher speeds require a Premium VirusTotal API key.</small>
-                </div>
-                <div class="modal-notice">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                    <span id="tierNotice"><strong>Free Tier Restrictions:</strong> You are limited to 4 requests per minute and 500 requests per day.</span>
-                </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     API KEY MODAL
+══════════════════════════════════════════════════════════ -->
+<div id="apiKeyModal" class="modal-overlay" style="display:none;">
+    <div class="modal glass-panel">
+        <div class="modal-header">
+            <h3>Configure VirusTotal API</h3>
+            <button id="closeApiModal" class="btn-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Your API key is stored only in <strong>this browser's localStorage</strong>. It is never sent to any server other than VirusTotal.</p>
+            <div class="input-group">
+                <label for="apiKeyInput">VirusTotal v3 API Key</label>
+                <input type="password" id="apiKeyInput" placeholder="Paste your API key here" autocomplete="off">
             </div>
-            <div class="modal-footer">
-                <button id="saveApiKeyBtn" class="btn btn-primary">Save Key</button>
+            <div class="input-group">
+                <label for="proxyInput">Custom CORS Proxy URL <span class="badge badge-clean" style="font-size:0.6rem;padding:2px 6px;">Optional</span></label>
+                <input type="url" id="proxyInput" placeholder="https://my-proxy.workers.dev/?url=" autocomplete="off">
+                <small style="color:var(--text-secondary);font-size:0.75rem;margin-top:0.25rem;">Bypass corporate firewalls using a Cloudflare Worker proxy.</small>
+            </div>
+            <div class="input-group">
+                <label for="apiTierSelect">API Request Speed</label>
+                <select id="apiTierSelect" class="filter-select" style="width:100%;height:42px;">
+                    <option value="FREE">Free Tier (15s delay · 4 req/min)</option>
+                    <option value="STANDARD">Standard Tier (4s delay · 15 req/min)</option>
+                    <option value="PREMIUM">Premium Tier (0.5s · Burst Mode)</option>
+                </select>
+            </div>
+            <div class="modal-notice">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span id="tierNotice"><strong>Free Tier:</strong> 4 requests/min · 500 requests/day</span>
             </div>
         </div>
+        <div class="modal-footer">
+            <button id="saveApiKeyBtn" class="btn btn-primary">Save & Close</button>
+        </div>
     </div>
+</div>
 
-    <!-- Application Script -->
-    <script type="module" src="js/app.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
