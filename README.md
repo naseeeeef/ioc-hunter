@@ -1,58 +1,67 @@
-# Bulk IOC Hunter
+# Bulk IOC Hunter — Internal Exposure & Correlation Engine
 
-Bulk IOC Hunter is a modern, responsive web application designed for security analysts and researchers to quickly scan large lists of Indicators of Compromise (IOCs) such as IP addresses and domains against the VirusTotal v3 API. 
+Bulk IOC Hunter is a modern, client-side web application designed for SOC analysts, threat hunters, and security researchers. It allows you to rapidly extract, normalize, and scan thousands of Indicators of Compromise (IOCs) such as IPs and domains against the VirusTotal v3 API. 
 
-## Features
+It specifically introduces **Local Company Baseline Correlation** — automatically comparing threat feeds against your own internal network assets fully offline within the browser, without ever transmitting your sensitive infrastructure list to a third-party server.
 
-- **Bulk Processing**: Paste large lists of IOCs or upload files (**Excel (.xlsx, .xls)**, CSV, or Text) to scan hundreds of indicators at once.
-- **Advanced Normalization**: Automatically refangs security-obfuscated indicators (e.g., `8.8[.]8[.]8` → `8.8.8.8`, `example(dot)com` → `example.com`).
-- **Smart Parsing**: Strictly extracts only **IP Addresses** and **Domains**. It automatically ignores dates, hashes, and other irrelevant metadata found in raw threat reports.
-- **URL to Domain Conversion**: If a full URL is provided (e.g., `https://malicious.rocks/payload`), the tool automatically extracts only the clean domain (`malicious.rocks`).
-- **VirusTotal Implementation**: Queries the VirusTotal v3 Public API and displays comprehensive results including stats, country, ISP, and community tags.
-- **Configurable API Speed**: Choose your API tier (Free vs Premium) to optimize scanning speed from 15s delay down to **0.5s per request**.
-- **Pause & Resume**: Easily pause and resume large scans without losing your progress.
-- **Filtering & Search**: Quickly filter results by verdict (Malicious, Suspicious, Clean, Unknown) or search for specific IOCs.
-- **Export Data**: Export your detailed scan results to CSV or JSON formats for reporting or further analysis.
-- **Modern UI/UX**: Features a sleek, dark-themed interface with real-time progress tracking, visual badges, and glassmorphism design.
-- **Mobile Responsive**: Fully optimized for mobile screens, allowing analysts to check IOCs on the go.
-- **Corporate Firewall Bypass**: Built-in support for custom private proxies (like Cloudflare Workers) to bypass strict Enterprise SIEM filters.
+## 🚀 Key Features
 
-## Prerequisites
+### Powerful Indicator Processing
+- **Smart Parsing & Extraction**: Paste massive threat feeds or upload files (**Excel (.xlsx, .xls)**, CSV, Text, Logs). The engine strictly extracts IPs and Domains, ignoring dates, hashes, and conversational noise.
+- **Advanced Normalization**: Automatically refangs indicators (e.g., `8.8[.]8[.]8` → `8.8.8.8`, `hxxps://evil.com/payload` → `evil.com`).
+- **Benign & Private IP Filtering**: Built-in intelligence drops private RFC1918 IPs (e.g., `10.x.x.x`, `192.168.x.x`) and trusted domains (e.g., `google.com`, `.local`), preserving your API quota.
 
-To use this application, you must have a **VirusTotal API Key**.
-- You can get a free API key by signing up for an account at [VirusTotal](https://www.virustotal.com/).
+### Asynchronous Scanning 
+- **Continuous Queueing**: Dynamic append logistics let you inject new IOCs into the queue even while a scan is running.
+- **Configurable Rate Limiting**: Maximize efficiency by adjusting API request speed tiers (from `15s` delay down to `0.5s` Premium Burst).
+- **Real-Time Progress**: Track live execution via a visual progress bar and numerical `Processed / Total` indicator.
 
-## Getting Started
+### Company Asset Correlation 🔒
+- **Offline Baseline Matching**: Upload a massive list of your known internal IPs and corporate domains into the **Company Asset File** drop zone. The frontend parses this into an in-memory hash map. 
+- Any threat feed indicator that strikes a match against your baseline immediately flags as a **Match (⚠ Exposed)**. Your baseline file is **never** sent over the internet.
 
-1. **Access the Application:**
-   - Either visit the live GitHub Pages link: [Bulk IOC Hunter](https://naseeeeef.github.io/ioc-hunter/)
-   - Or clone the repository locally: `git clone https://github.com/naseeeeef/ioc-hunter.git` and open `index.html`.
-2. **Configure your API Key:**
-   - On first launch, the application will prompt you to enter your VirusTotal API key. 
-   - You can update your API key at any time by clicking the **Settings (Gear) Icon** in the top right corner. The key is securely stored in your browser's local storage.
-3. **Scan IOCs:**
-   - Paste your IOCs into the provided text area, or upload a file containing IOCs.
-   - Click "Parse & Start Scan" and wait for the results!
+### Output & Reporting
+- **Filtering & Search**: Quickly pivot results by finding exactly what matches the baseline ("Matched Only") or filter by strict "Malicious" verdicts.
+- **Data Export**: Dump your final correlated results seamlessly into JSON or formatted CSV for your internal SIEM or reporting pipelines.
 
-## Corporate Proxy Setup (Bypassing Firewalls)
+---
 
-If you are using this tool in a SOC environment behind a strict corporate firewall, your browser's internal CORS requests might be blocked. Do not install browser extensions to bypass this, as it may alert your SIEM.
+## 🛠️ Getting Started
 
-Instead, you can deploy the included `worker.js` script to Cloudflare Workers for free in about 2 minutes. This creates a secure, private proxy just for you. 
-1. See the [PROXY-SETUP.md](PROXY-SETUP.md) file in this repository for an exact 3-step setup guide.
-2. Once deployed, open the **Settings** menu in the IOC Hunter and paste your proxy URL into the **Custom Proxy URL** field. 
+### Prerequisites
+You must have a **VirusTotal API Key**.
+- Create a free account at [VirusTotal](https://www.virustotal.com/) and grab a v3 API key.
 
-## Privacy & Security
+### Initialization
+1. Visit the live deployment: [**Bulk IOC Hunter**](https://naseeeeef.github.io/ioc-hunter/)
+2. Open the **API Settings** panel (top right).
+3. Paste your VirusTotal API key. *(Note: Config is securely saved entirely traversing `localStorage`).*
+4. Adjust your API Request limit based on your account tier. Close the settings window.
+5. Provide your data and click **Start Scan**.
 
-- **API Key Storage**: Your VirusTotal API key is stored **locally** in your browser's `localStorage` and never sent anywhere except to the VirusTotal servers.
-- **Client-Side Only**: All parsing and data processing occurs directly within your browser. 
+---
 
-## Technical Stack
+## 🛡️ Corporate Proxy Setup (Bypassing Firewalls)
 
-- **HTML5** & **CSS3** (Custom modern styling, CSS variables, glassmorphism UI)
-- **Vanilla JavaScript** (ES6 Modules)
-- **VirusTotal API v3**
+Using this in a strict SOC environment might result in browser standard CORS request blocks. Installing random extensions to circumvent CORS is dangerous and often blocked by enterprise policies.
 
-## License
+**The Solution:** Deploy a secure, serverless private proxy in 2 minutes.
+See the [**PROXY-SETUP.md**](PROXY-SETUP.md) setup guide to learn how to deploy the included `worker.js` to Cloudflare Workers for free. Plug the resulting endpoint into the Custom Proxy URL field in your settings.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+---
+
+## 🔒 Privacy & Architecture
+
+Bulk IOC Hunter is explicitly built for extreme privacy.
+* **100% Client-Side UI**: Your data lives only on your CPU. No tracker servers, no analytics, no backend storage.
+* **In-Memory Correlation**: The Company Baseline file processes completely locally on the frontend DOM logic. 
+* **API Exfiltration Guarding**: Only external, non-private resolved indicators are bundled and pushed to the VirusTotal APIs.
+
+## 💻 Tech Stack
+- **JavaScript (ES6 Modules)**: Engineered for multi-threading and async processing.
+- **CSS3 Glassmorphism**: Tailored, no-framework Custom UI tokens.
+- **HTML5 Web APIs**: Local FileReader and matching APIs.
+- **VirusTotal v3 REST API**
+
+## 📄 License
+This project is licensed under the MIT License.

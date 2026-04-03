@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         companyFileInput:   $('companyFileInput'),
         companyFileName:    $('companyFileName'),
         companyStatus:      $('companyStatus'),
+        removeCompanyBtn:   $('removeCompanyBtn'),
 
         // Controls
         startBtn:   $('startBtn'),
@@ -124,8 +125,43 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDropZone('iocDropZone',     UI.iocFileInput);
     setupDropZone('companyDropZone', UI.companyFileInput);
 
+    // Baseline persistence
+    UI.removeCompanyBtn.addEventListener('click', clearCompanyBaseline);
+    loadCompanyBaselineFromStorage();
+
     rerender();
 });
+
+function loadCompanyBaselineFromStorage() {
+    try {
+        const storedName = localStorage.getItem('ioc_baseline_name');
+        const storedData = localStorage.getItem('ioc_baseline_data');
+        if (storedData && storedName) {
+            const arr = JSON.parse(storedData);
+            if (Array.isArray(arr) && arr.length > 0) {
+                companySet = new Set(arr);
+                UI.companyFileName.textContent = `✓ ${storedName}`;
+                UI.companyStatus.textContent   = `${companySet.size} unique indicators in baseline`;
+                setCompanyStatusClass('ready');
+                UI.removeCompanyBtn.style.display = 'block';
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load baseline from storage', e);
+        localStorage.removeItem('ioc_baseline_data');
+        localStorage.removeItem('ioc_baseline_name');
+    }
+}
+
+function clearCompanyBaseline() {
+    companySet.clear();
+    localStorage.removeItem('ioc_baseline_data');
+    localStorage.removeItem('ioc_baseline_name');
+    if (UI.companyFileInput) UI.companyFileInput.value = '';
+    UI.companyFileName.textContent = '— No file';
+    UI.companyStatus.textContent = '';
+    UI.removeCompanyBtn.style.display = 'none';
+}
 
 // ─── File handlers ─────────────────────────────────────────────────────────
 
@@ -203,6 +239,15 @@ async function buildCompanyBaseline(text, label = '') {
     UI.companyFileName.textContent = label ? `✓ ${label}` : '✓ Loaded';
     UI.companyStatus.textContent   = `${companySet.size} unique indicators in baseline`;
     setCompanyStatusClass('ready');
+    UI.removeCompanyBtn.style.display = 'block';
+
+    try {
+        localStorage.setItem('ioc_baseline_data', JSON.stringify(Array.from(companySet)));
+        localStorage.setItem('ioc_baseline_name', label || 'Loaded');
+    } catch(e) {
+        console.warn('Baseline too large to save to localStorage.', e);
+    }
+
     console.debug('[IOC Hunter] Company baseline set:', [...companySet].slice(0, 20));
 }
 
@@ -276,16 +321,11 @@ function clearAll() {
     setTimeout(() => {
         currentQueue = [];
         results      = [];
-        companySet.clear();
+        // Intentionally NOT clearing companySet so it persists across general scans
         window._iocRawText = null;
         UI.iocInput.value  = '';
         if (UI.iocFileInput)  UI.iocFileInput.value  = '';
         if (UI.iocFileName)   UI.iocFileName.textContent = '';
-        
-        // Ensure baseline UI resets completely
-        if (UI.companyFileInput) UI.companyFileInput.value = '';
-        if (UI.companyFileName)  UI.companyFileName.textContent = '— No file';
-        if (UI.companyStatus)    UI.companyStatus.textContent = '';
         
         UI.progressContainer.style.display = 'none';
         UI.startBtn.disabled = false;
