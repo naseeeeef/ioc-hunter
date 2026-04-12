@@ -33,6 +33,10 @@
             <h1>IOC Hunter</h1>
             <span class="header-subtitle">Internal Exposure Engine</span>
         </div>
+        <div class="tabs-nav">
+            <button class="tab-link active" data-tab="hunter">VT Scan</button>
+            <button class="tab-link" data-tab="cleaner">Clean Filter</button>
+        </div>
         <button id="apiKeySettingsBtn" class="btn btn-outline" title="Configure API Key">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>
@@ -43,9 +47,10 @@
     </header>
 
     <!-- ══════════════════════════════════════════════════════════
-         MAIN DASHBOARD
+         TAB 1: MAIN DASHBOARD (VT SCAN)
     ══════════════════════════════════════════════════════════ -->
-    <main class="dashboard-grid">
+    <div id="tab-hunter" class="tab-pane active">
+        <main class="dashboard-grid">
 
         <!-- ── Left Column: Controls ── -->
         <aside class="left-col">
@@ -222,7 +227,142 @@
             </div>
         </section>
 
-    </main>
+        </main>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TAB 2: CLEAN FILTER (DEDUPLICATION)
+    ══════════════════════════════════════════════════════════ -->
+    <div id="tab-cleaner" class="tab-pane">
+        <main class="dashboard-grid">
+            <!-- ── Left Column: Controls ── -->
+            <aside class="left-col">
+                <section class="panel glass-panel upload-panel">
+                    <div class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Upload Files To Clean
+                    </div>
+
+                    <!-- Hidden file inputs -->
+                    <input type="file" id="cleanIocFileInput" accept=".txt,.csv,.xlsx,.xls,.log" class="hidden-file">
+                    <input type="file" id="cleanCompanyFileInput" accept=".txt,.csv,.xlsx,.xls,.log" class="hidden-file">
+
+                    <!-- Threat IOC input -->
+                    <div class="upload-block">
+                        <label class="upload-label">Threat IOC File <span class="badge badge-info">IPs / Domains</span></label>
+                        <div class="drop-zone" id="cleanIocDropZone">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span>Click here or drag &amp; drop a file</span>
+                            <small>Supports .txt &middot; .csv &middot; .xlsx</small>
+                        </div>
+                        <span id="cleanIocFileName" class="file-status"></span>
+                    </div>
+
+                    <div class="divider">OR paste manually</div>
+
+                    <textarea id="cleanIocInput" placeholder="Paste IPs or Domains...&#10;&#10;Unwanted extensions and duplicates will be stripped."></textarea>
+
+                    <!-- Company baseline upload -->
+                    <div class="upload-block" style="margin-top: 1rem;">
+                        <label class="upload-label">
+                            Company Asset File
+                            <span class="badge badge-info">Baseline</span>
+                            <span class="badge badge-secure" title="Never sent to any server">🔒 LOCAL ONLY</span>
+                        </label>
+                        <div class="drop-zone drop-zone-company" id="cleanCompanyDropZone">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            <span>Click here or drag &amp; drop company file</span>
+                            <small>Supports .txt &middot; .csv &middot; .xlsx &middot; IPs/Domains only</small>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.2rem;">
+                            <div style="display: flex; flex-direction: column; overflow: hidden;">
+                                <span id="cleanCompanyFileName" class="file-status"></span>
+                                <span id="cleanCompanyStatus" class="company-status" style="margin-top:0;"></span>
+                            </div>
+                            <button id="cleanRemoveCompanyBtn" class="btn-icon" style="display: none; background: rgba(248,113,113,0.15); border-radius: 4px; padding: 4px; flex-shrink: 0;" title="Remove baseline">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--verdict-malicious)" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14H6L5 6"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel glass-panel controls-panel">
+                    <div class="action-buttons">
+                        <button id="startCleanBtn" class="btn btn-primary" style="background:var(--verdict-clean); color:#000;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 11.5L11 14.5L16 9"/></svg>
+                            Clean IOCs
+                        </button>
+                        <button id="clearCleanBtn" class="btn btn-danger">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                            Clear
+                        </button>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- ── Right Column: Clean Results ── -->
+            <section class="right-col panel glass-panel results-panel">
+                <div class="stats-panel" style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--glass-border); background: rgba(0,0,0,0.15);">
+                    <div class="stat-cards" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 0;">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statCleanTotal" style="font-size: 1.5rem;">0</div>
+                            <div class="stat-label">Unique Threat IOCs</div>
+                        </div>
+                        <div class="stat-card stat-card-matched">
+                            <div class="stat-value" id="statCleanMatched" style="font-size: 1.5rem; color: var(--verdict-suspicious);">0</div>
+                            <div class="stat-label">Matched &amp; Removed</div>
+                        </div>
+                        <div class="stat-card stat-card-danger" style="border-color: rgba(52,211,153,0.3);">
+                            <div class="stat-value" id="statCleanFinal" style="font-size: 1.5rem; color: var(--verdict-clean);">0</div>
+                            <div class="stat-label">Final Clean Data</div>
+                        </div>
+                        <div class="stat-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; border-color: rgba(255,255,255,0.08);">
+                            <div class="stat-label" style="margin-bottom: 0.4rem;">Status</div>
+                            <strong id="statCleanStatus" class="status-idle" style="font-size: 0.9rem;">Idle</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-header" style="flex-wrap: nowrap; align-items: stretch; gap: 1rem;">
+                    <!-- Clean Data Column -->
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2 class="results-title" style="color: var(--verdict-clean);">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                                Final Clean IOCs
+                            </h2>
+                            <div class="dropdown">
+                                <button class="btn btn-outline btn-sm cleanExportBtn_clean" disabled>Export Clean</button>
+                                <div class="dropdown-menu cleanExportMenu_clean" style="display:none; right:0; left:auto;">
+                                    <a href="#" class="exportTxt_clean">Export as TXT</a>
+                                    <a href="#" class="exportCsv_clean">Export as CSV</a>
+                                </div>
+                            </div>
+                        </div>
+                        <textarea id="cleanOutputData" readonly style="flex: 1; height: 350px; background: rgba(0,0,0,0.5);"></textarea>
+                    </div>
+
+                    <!-- Removed Data Column -->
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem; border-left: 1px solid var(--glass-border); padding-left: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2 class="results-title" style="color: var(--verdict-suspicious);">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                                Removed IOCs
+                            </h2>
+                            <div class="dropdown">
+                                <button class="btn btn-outline btn-sm cleanExportBtn_removed" disabled>Export Removed</button>
+                                <div class="dropdown-menu cleanExportMenu_removed" style="display:none; right:0; left:auto;">
+                                    <a href="#" class="exportTxt_removed">Export as TXT</a>
+                                    <a href="#" class="exportCsv_removed">Export as CSV</a>
+                                </div>
+                            </div>
+                        </div>
+                        <textarea id="removedOutputData" readonly style="flex: 1; height: 350px; background: rgba(0,0,0,0.5); border-color: rgba(251,191,36,0.3);"></textarea>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════

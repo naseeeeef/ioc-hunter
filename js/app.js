@@ -6,6 +6,7 @@ import { IOCParser }    from './parser.js?v=1.2';
 import { VTClient }     from './vtClient.js?v=1.2';
 import { UIRenderer }   from './uiRenderer.js?v=1.2';
 import { FileProcessor } from './fileReader.js?v=1.2';
+import { CleanFilter }   from './cleanFilter.js';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 let API_KEY      = localStorage.getItem('vt_apikey') || '';
@@ -23,6 +24,7 @@ let timerTimeout  = null;
 // ─── Module instances ──────────────────────────────────────────────────────
 let renderer = null; // instantiated inside DOMContentLoaded
 let vtClient = null; // created fresh when API key is confirmed
+let cleanFilter = null;
 
 // ─── DOM refs — initialized inside DOMContentLoaded to avoid null ─────────
 const $ = id => document.getElementById(id);
@@ -138,6 +140,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ─── Tabs Logic ────────────────────────────────────────────────────────
+    const tabLinks = document.querySelectorAll('.tab-link');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    tabLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            tabLinks.forEach(l => l.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            link.classList.add('active');
+            document.getElementById('tab-' + link.dataset.tab).classList.add('active');
+        });
+    });
+
+    // ─── Clean Filter Init ──────────────────────────────────────────────────
+    cleanFilter = new CleanFilter(companySet);
+
+    // Bind Clean Filter's company file input to reuse app.js logic
+    const cleanCompanyFileInput = document.getElementById('cleanCompanyFileInput');
+    if (cleanCompanyFileInput) {
+        cleanCompanyFileInput.addEventListener('change', handleCompanyFileUpload);
+    }
+    const cleanRemoveCompanyBtn = document.getElementById('cleanRemoveCompanyBtn');
+    if (cleanRemoveCompanyBtn) {
+        cleanRemoveCompanyBtn.addEventListener('click', clearCompanyBaseline);
+    }
+
     rerender();
 });
 
@@ -148,11 +175,11 @@ function loadCompanyBaselineFromStorage() {
         if (storedData && storedName) {
             const arr = JSON.parse(storedData);
             if (Array.isArray(arr) && arr.length > 0) {
-                companySet = new Set(arr);
-                UI.companyFileName.textContent = `✓ ${storedName}`;
-                UI.companyStatus.textContent   = `${companySet.size} unique indicators in baseline`;
-                setCompanyStatusClass('ready');
-                UI.removeCompanyBtn.style.display = 'block';
+                // We must update the set IN PLACE so cleanFilter.js sees the updates via reference
+                companySet.clear();
+                arr.forEach(i => companySet.add(i));
+
+                syncCompanyUIAcrossTabs(`✓ ${storedName}`, `${companySet.size} unique indicators in baseline`, 'ready', true);
             }
         }
     } catch (e) {
@@ -167,9 +194,10 @@ function clearCompanyBaseline() {
     localStorage.removeItem('ioc_baseline_data');
     localStorage.removeItem('ioc_baseline_name');
     if (UI.companyFileInput) UI.companyFileInput.value = '';
-    UI.companyFileName.textContent = '— No file';
-    UI.companyStatus.textContent = '';
-    UI.removeCompanyBtn.style.display = 'none';
+    const cleanCompanyFileInput = document.getElementById('cleanCompanyFileInput');
+    if (cleanCompanyFileInput) cleanCompanyFileInput.value = '';
+
+    syncCompanyUIAcrossTabs('— No file', '', '', false);
 }
 
 // ─── File handlers ─────────────────────────────────────────────────────────
@@ -245,10 +273,7 @@ async function buildCompanyBaseline(text, label = '') {
         await new Promise(r => setTimeout(r, 0));
     }
 
-    UI.companyFileName.textContent = label ? `✓ ${label}` : '✓ Loaded';
-    UI.companyStatus.textContent   = `${companySet.size} unique indicators in baseline`;
-    setCompanyStatusClass('ready');
-    UI.removeCompanyBtn.style.display = 'block';
+    syncCompanyUIAcrossTabs(label ? `✓ ${label}` : '✓ Loaded', `${companySet.size} unique indicators in baseline`, 'ready', true);
 
     try {
         localStorage.setItem('ioc_baseline_data', JSON.stringify(Array.from(companySet)));
@@ -453,10 +478,28 @@ function setStatus(text, cls) {
 }
 
 function setCompanyStatusClass(state) {
-    const el = UI.companyStatus;
-    el.className = '';
-    if (state === 'loading') el.style.color = 'var(--verdict-suspicious)';
-    if (state === 'ready')   el.style.color = 'var(--verdict-clean)';
+    [UI.companyStatus, document.getElementById('cleanCompanyStatus')].forEach(el => {
+        if (!el) return;
+        el.className = '';
+        if (state === 'loading') el.style.color = 'var(--verdict-suspicious)';
+        if (state === 'ready')   el.style.color = 'var(--verdict-clean)';
+    });
+}
+
+function syncCompanyUIAcrossTabs(nameText, statusText, state, showRemove) {
+    UI.companyFileName.textContent = nameText;
+    UI.companyStatus.textContent = statusText;
+    UI.removeCompanyBtn.style.display = showRemove ? 'block' : 'none';
+
+    const cleanName = document.getElementById('cleanCompanyFileName');
+    const cleanStatus = document.getElementById('cleanCompanyStatus');
+    const cleanRemove = document.getElementById('cleanRemoveCompanyBtn');
+
+    if (cleanName) cleanName.textContent = nameText;
+    if (cleanStatus) cleanStatus.textContent = statusText;
+    if (cleanRemove) cleanRemove.style.display = showRemove ? 'block' : 'none';
+
+    setCompanyStatusClass(state);
 }
 
 function updateRateLimitUI() {
