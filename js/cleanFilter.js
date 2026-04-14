@@ -19,6 +19,8 @@ export class CleanFilter {
 
             startBtn: document.getElementById('startCleanBtn'),
             clearBtn: document.getElementById('clearCleanBtn'),
+            copyCleanBtn: document.getElementById('copyCleanBtn'),
+            copyRemovedBtn: document.getElementById('copyRemovedBtn'),
 
             statTotal: document.getElementById('statCleanTotal'),
             statMatched: document.getElementById('statCleanMatched'),
@@ -64,6 +66,8 @@ export class CleanFilter {
         // Action Buttons
         this.UI.startBtn.addEventListener('click', () => this.startCleaning());
         this.UI.clearBtn.addEventListener('click', () => this.clearAll());
+        this.UI.copyCleanBtn.addEventListener('click', () => this.copyToClipboard(this.UI.outputClean.value, this.UI.copyCleanBtn));
+        this.UI.copyRemovedBtn.addEventListener('click', () => this.copyToClipboard(this.UI.outputRemoved.value, this.UI.copyRemovedBtn));
 
         // Export Dropdowns logic
         this.UI.cleanExportBtnClean.addEventListener('click', (e) => {
@@ -315,6 +319,8 @@ export class CleanFilter {
             // Enable export
             this.UI.cleanExportBtnClean.disabled = cleanArr.length === 0;
             this.UI.cleanExportBtnRemoved.disabled = removedArr.length === 0;
+            this.UI.copyCleanBtn.disabled = cleanArr.length === 0;
+            this.UI.copyRemovedBtn.disabled = removedArr.length === 0;
 
         } catch (e) {
             console.error(e);
@@ -332,6 +338,23 @@ export class CleanFilter {
     renderOutput() {
         this.UI.outputClean.value = this.cleanResults.map(i => i.value).join('\n');
         this.UI.outputRemoved.value = this.removedResults.map(i => i.value).join('\n');
+    }
+
+    async copyToClipboard(text, btn) {
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.style.color = 'var(--text-primary)';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.color = '';
+            }, 1000);
+        } catch (err) {
+            console.error('Failed to copy!', err);
+            alert('Clipboard copy failed. Please select and copy manually.');
+        }
     }
 
     clearAll() {
@@ -354,6 +377,8 @@ export class CleanFilter {
         
         this.UI.cleanExportBtnClean.disabled = true;
         this.UI.cleanExportBtnRemoved.disabled = true;
+        this.UI.copyCleanBtn.disabled = true;
+        this.UI.copyRemovedBtn.disabled = true;
     }
 
     setStatus(text, cls) {

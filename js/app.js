@@ -79,7 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Export
         exportBtn:         $('exportBtn'),
         exportMenu:        $('exportMenu'),
+        exportCSVAllBtn:   $('exportCSVAllBtn'),
         exportCSVBtn:      $('exportCSVBtn'),
+        exportJSONAllBtn:  $('exportJSONAllBtn'),
         exportJSONBtn:     $('exportJSONBtn'),
     };
 
@@ -120,8 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
         UI.exportMenu.style.display = UI.exportMenu.style.display === 'block' ? 'none' : 'block';
     });
     document.addEventListener('click', () => UI.exportMenu.style.display = 'none');
-    UI.exportCSVBtn.addEventListener('click',  e => { e.preventDefault(); UIRenderer.exportCSV(results);  });
-    UI.exportJSONBtn.addEventListener('click', e => { e.preventDefault(); UIRenderer.exportJSON(results); });
+    UI.exportCSVAllBtn.addEventListener('click', e => { e.preventDefault(); UIRenderer.exportCSV(results, false); });
+    UI.exportCSVBtn.addEventListener('click',    e => { e.preventDefault(); UIRenderer.exportCSV(results, true);  });
+    UI.exportJSONAllBtn.addEventListener('click',e => { e.preventDefault(); UIRenderer.exportJSON(results, false);});
+    UI.exportJSONBtn.addEventListener('click',   e => { e.preventDefault(); UIRenderer.exportJSON(results, true); });
 
     // Drag-and-drop for both zones
     setupDropZone('iocDropZone',     UI.iocFileInput);

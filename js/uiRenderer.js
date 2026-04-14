@@ -79,11 +79,13 @@ export class UIRenderer {
     }
 
     /**
-     * Export matched results to CSV.
+     * Export results to CSV.
+     * @param {VTResult[]} results
+     * @param {boolean} onlyMatched
      */
-    static exportCSV(results) {
-        const rows = results.filter(r => r.isMatched);
-        if (!rows.length) { alert('No matched results to export.'); return; }
+    static exportCSV(results, onlyMatched = true) {
+        const rows = onlyMatched ? results.filter(r => r.isMatched) : results;
+        if (!rows.length) { alert('No results to export.'); return; }
 
         const headers = ['Indicator','Type','Verdict','VT Score','Country','ISP','Match Status'];
         const lines = rows.map(r => {
@@ -94,16 +96,20 @@ export class UIRenderer {
         });
 
         const csv = [headers.join(','), ...lines].join('\n');
-        UIRenderer._download('text/csv', csv, 'exposure_matched.csv');
+        const filename = onlyMatched ? 'exposure_matched.csv' : 'exposure_all.csv';
+        UIRenderer._download('text/csv', csv, filename);
     }
 
     /**
-     * Export matched results to JSON.
+     * Export results to JSON.
+     * @param {VTResult[]} results
+     * @param {boolean} onlyMatched
      */
-    static exportJSON(results) {
-        const rows = results.filter(r => r.isMatched);
-        if (!rows.length) { alert('No matched results to export.'); return; }
-        UIRenderer._download('application/json', JSON.stringify(rows, null, 2), 'exposure_matched.json');
+    static exportJSON(results, onlyMatched = true) {
+        const rows = onlyMatched ? results.filter(r => r.isMatched) : results;
+        if (!rows.length) { alert('No results to export.'); return; }
+        const filename = onlyMatched ? 'exposure_matched.json' : 'exposure_all.json';
+        UIRenderer._download('application/json', JSON.stringify(rows, null, 2), filename);
     }
 
     static _download(mimeType, content, filename) {
