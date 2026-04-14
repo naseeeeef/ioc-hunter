@@ -153,17 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ─── Clean Filter Init ──────────────────────────────────────────────────
-    cleanFilter = new CleanFilter(companySet);
-
-    // Bind Clean Filter's company file input to reuse app.js logic
-    const cleanCompanyFileInput = document.getElementById('cleanCompanyFileInput');
-    if (cleanCompanyFileInput) {
-        cleanCompanyFileInput.addEventListener('change', handleCompanyFileUpload);
-    }
-    const cleanRemoveCompanyBtn = document.getElementById('cleanRemoveCompanyBtn');
-    if (cleanRemoveCompanyBtn) {
-        cleanRemoveCompanyBtn.addEventListener('click', clearCompanyBaseline);
-    }
+    cleanFilter = new CleanFilter();
 
     rerender();
 });
@@ -179,7 +169,7 @@ function loadCompanyBaselineFromStorage() {
                 companySet.clear();
                 arr.forEach(i => companySet.add(i));
 
-                syncCompanyUIAcrossTabs(`✓ ${storedName}`, `${companySet.size} unique indicators in baseline`, 'ready', true);
+                syncCompanyUI(`✓ ${storedName}`, `${companySet.size} unique indicators in baseline`, 'ready', true);
             }
         }
     } catch (e) {
@@ -194,10 +184,7 @@ function clearCompanyBaseline() {
     localStorage.removeItem('ioc_baseline_data');
     localStorage.removeItem('ioc_baseline_name');
     if (UI.companyFileInput) UI.companyFileInput.value = '';
-    const cleanCompanyFileInput = document.getElementById('cleanCompanyFileInput');
-    if (cleanCompanyFileInput) cleanCompanyFileInput.value = '';
-
-    syncCompanyUIAcrossTabs('— No file', '', '', false);
+    syncCompanyUI('— No file', '', '', false);
 }
 
 // ─── File handlers ─────────────────────────────────────────────────────────
@@ -273,7 +260,7 @@ async function buildCompanyBaseline(text, label = '') {
         await new Promise(r => setTimeout(r, 0));
     }
 
-    syncCompanyUIAcrossTabs(label ? `✓ ${label}` : '✓ Loaded', `${companySet.size} unique indicators in baseline`, 'ready', true);
+    syncCompanyUI(label ? `✓ ${label}` : '✓ Loaded', `${companySet.size} unique indicators in baseline`, 'ready', true);
 
     try {
         localStorage.setItem('ioc_baseline_data', JSON.stringify(Array.from(companySet)));
@@ -478,26 +465,16 @@ function setStatus(text, cls) {
 }
 
 function setCompanyStatusClass(state) {
-    [UI.companyStatus, document.getElementById('cleanCompanyStatus')].forEach(el => {
-        if (!el) return;
-        el.className = '';
-        if (state === 'loading') el.style.color = 'var(--verdict-suspicious)';
-        if (state === 'ready')   el.style.color = 'var(--verdict-clean)';
-    });
+    if (!UI.companyStatus) return;
+    UI.companyStatus.className = '';
+    if (state === 'loading') UI.companyStatus.style.color = 'var(--verdict-suspicious)';
+    if (state === 'ready')   UI.companyStatus.style.color = 'var(--verdict-clean)';
 }
 
-function syncCompanyUIAcrossTabs(nameText, statusText, state, showRemove) {
+function syncCompanyUI(nameText, statusText, state, showRemove) {
     UI.companyFileName.textContent = nameText;
     UI.companyStatus.textContent = statusText;
     UI.removeCompanyBtn.style.display = showRemove ? 'block' : 'none';
-
-    const cleanName = document.getElementById('cleanCompanyFileName');
-    const cleanStatus = document.getElementById('cleanCompanyStatus');
-    const cleanRemove = document.getElementById('cleanRemoveCompanyBtn');
-
-    if (cleanName) cleanName.textContent = nameText;
-    if (cleanStatus) cleanStatus.textContent = statusText;
-    if (cleanRemove) cleanRemove.style.display = showRemove ? 'block' : 'none';
 
     setCompanyStatusClass(state);
 }

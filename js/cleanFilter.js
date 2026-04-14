@@ -2,9 +2,8 @@ import { IOCParser } from './parser.js?v=1.2';
 import { FileProcessor } from './fileReader.js?v=1.2';
 
 export class CleanFilter {
-    constructor(appCompanySet) {
-        // App's shared companySet (reference so it updates)
-        this.companySet = appCompanySet;
+    constructor() {
+        this.companySet = new Set();
 
         this.UI = {
             iocFileInput: document.getElementById('cleanIocFileInput'),
@@ -57,11 +56,10 @@ export class CleanFilter {
         // File Inputs
         this.UI.iocFileInput.addEventListener('change', (e) => this.handleIocUpload(e));
         
-        // Let app.js handle company baseline if we want it completely synced.
-        // But we bind it here also so that the event gets caught and app.js handles it, or we handle it here and dispatch an event.
-        // Actually, it's better to just replicate the exact logic or throw a custom event that app.js catches.
-        // For simplicity, we just listen to it and manually call handleCompanyFileUpload from app.js. 
-        // We'll leave it to app.js to bind `cleanCompanyFileInput` so it's perfectly in sync.
+        // Company Baseline
+        this.UI.companyFileInput.addEventListener('change', (e) => this.handleCompanyFileUpload(e));
+        this.UI.removeCompanyBtn.addEventListener('click', () => this.clearCompanyBaseline());
+        this.loadCompanyBaselineFromStorage();
 
         // Action Buttons
         this.UI.startBtn.addEventListener('click', () => this.startCleaning());
@@ -128,6 +126,103 @@ export class CleanFilter {
             this.UI.iocFileName.textContent = '✗ Read error';
             console.error(err);
         }
+    }
+
+    async handleCompanyFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        this.UI.companyFileName.textContent = `Reading ${file.name}...`;
+        this.UI.companyStatus.textContent = '';
+        this.setCompanyStatusClass('loading');
+
+        try {
+            const text = await FileProcessor.readAsText(file);
+            await this.buildCompanyBaseline(text, file.name);
+        } catch (err) {
+            this.UI.companyFileName.textContent = '✗ Error reading file';
+            this.UI.companyStatus.textContent = err.message;
+            console.error(err);
+        }
+    }
+
+    async buildCompanyBaseline(text, label = '') {
+        this.companySet.clear();
+        if (!text.trim()) {
+            this.syncCompanyUI('— No file', '', '', false);
+            return;
+        }
+
+        const CHUNK = 300_000;
+        let pos = 0;
+
+        while (pos < text.length) {
+            let end = pos + CHUNK;
+            if (end < text.length) {
+                const nl = text.indexOf('\n', end);
+                if (nl !== -1 && nl - end < 5000) end = nl;
+            } else {
+                end = text.length;
+            }
+
+            const chunk = text.substring(pos, end);
+            IOCParser.parse(chunk).forEach(ioc => this.companySet.add(ioc.value.toLowerCase()));
+            pos = end;
+
+            const pct = Math.round((pos / text.length) * 100);
+            this.UI.companyStatus.textContent = `Processing... ${pct}%`;
+            await new Promise(r => setTimeout(r, 0));
+        }
+
+        this.syncCompanyUI(label ? `✓ ${label}` : '✓ Loaded', `${this.companySet.size} unique indicators in baseline`, 'ready', true);
+
+        try {
+            localStorage.setItem('clean_ioc_baseline_data', JSON.stringify(Array.from(this.companySet)));
+            localStorage.setItem('clean_ioc_baseline_name', label || 'Loaded');
+        } catch(e) {
+            console.warn('Baseline too large to save to localStorage.', e);
+        }
+    }
+
+    clearCompanyBaseline() {
+        this.companySet.clear();
+        localStorage.removeItem('clean_ioc_baseline_data');
+        localStorage.removeItem('clean_ioc_baseline_name');
+        if (this.UI.companyFileInput) this.UI.companyFileInput.value = '';
+        this.syncCompanyUI('— No file', '', '', false);
+    }
+
+    loadCompanyBaselineFromStorage() {
+        try {
+            const storedName = localStorage.getItem('clean_ioc_baseline_name');
+            const storedData = localStorage.getItem('clean_ioc_baseline_data');
+            if (storedData && storedName) {
+                const arr = JSON.parse(storedData);
+                if (Array.isArray(arr) && arr.length > 0) {
+                    this.companySet.clear();
+                    arr.forEach(i => this.companySet.add(i));
+                    this.syncCompanyUI(`✓ ${storedName}`, `${this.companySet.size} unique indicators in baseline`, 'ready', true);
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load clean baseline from storage', e);
+            localStorage.removeItem('clean_ioc_baseline_data');
+            localStorage.removeItem('clean_ioc_baseline_name');
+        }
+    }
+
+    syncCompanyUI(nameText, statusText, state, showRemove) {
+        this.UI.companyFileName.textContent = nameText;
+        this.UI.companyStatus.textContent = statusText;
+        this.UI.removeCompanyBtn.style.display = showRemove ? 'block' : 'none';
+        
+        this.setCompanyStatusClass(state);
+    }
+
+    setCompanyStatusClass(state) {
+        this.UI.companyStatus.className = '';
+        if (state === 'loading') this.UI.companyStatus.style.color = 'var(--verdict-suspicious)';
+        if (state === 'ready')   this.UI.companyStatus.style.color = 'var(--verdict-clean)';
     }
 
     async startCleaning() {
