@@ -122,10 +122,14 @@ document.addEventListener('DOMContentLoaded', () => {
         UI.exportMenu.style.display = UI.exportMenu.style.display === 'block' ? 'none' : 'block';
     });
     document.addEventListener('click', () => UI.exportMenu.style.display = 'none');
-    UI.exportCSVAllBtn.addEventListener('click', e => { e.preventDefault(); UIRenderer.exportCSV(results, false); });
-    UI.exportCSVBtn.addEventListener('click',    e => { e.preventDefault(); UIRenderer.exportCSV(results, true);  });
-    UI.exportJSONAllBtn.addEventListener('click',e => { e.preventDefault(); UIRenderer.exportJSON(results, false);});
-    UI.exportJSONBtn.addEventListener('click',   e => { e.preventDefault(); UIRenderer.exportJSON(results, true); });
+
+    // Stop clicks inside the menu from immediately closing it
+    UI.exportMenu.addEventListener('click', e => e.stopPropagation());
+
+    UI.exportCSVAllBtn.addEventListener('click',  e => { e.preventDefault(); UIRenderer.exportCSV(results, false);  UI.exportMenu.style.display = 'none'; });
+    UI.exportCSVBtn.addEventListener('click',     e => { e.preventDefault(); UIRenderer.exportCSV(results, true);   UI.exportMenu.style.display = 'none'; });
+    UI.exportJSONAllBtn.addEventListener('click', e => { e.preventDefault(); UIRenderer.exportJSON(results, false); UI.exportMenu.style.display = 'none'; });
+    UI.exportJSONBtn.addEventListener('click',    e => { e.preventDefault(); UIRenderer.exportJSON(results, true);  UI.exportMenu.style.display = 'none'; });
 
     // Drag-and-drop for both zones
     setupDropZone('iocDropZone',     UI.iocFileInput);

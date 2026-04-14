@@ -72,27 +72,32 @@ export class CleanFilter {
         // Export Dropdowns logic
         this.UI.cleanExportBtnClean.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.UI.cleanExportMenuClean.style.display = this.UI.cleanExportMenuClean.style.display === 'block' ? 'none' : 'block';
+            const isOpen = this.UI.cleanExportMenuClean.style.display === 'block';
+            this.UI.cleanExportMenuClean.style.display  = isOpen ? 'none' : 'block';
             this.UI.cleanExportMenuRemoved.style.display = 'none';
         });
 
         this.UI.cleanExportBtnRemoved.addEventListener('click', (e) => {
             e.stopPropagation();
-            this.UI.cleanExportMenuRemoved.style.display = this.UI.cleanExportMenuRemoved.style.display === 'block' ? 'none' : 'block';
-            this.UI.cleanExportMenuClean.style.display = 'none';
+            const isOpen = this.UI.cleanExportMenuRemoved.style.display === 'block';
+            this.UI.cleanExportMenuRemoved.style.display = isOpen ? 'none' : 'block';
+            this.UI.cleanExportMenuClean.style.display   = 'none';
         });
 
+        // Stop clicks inside menus from bubbling to document (which would close them)
+        this.UI.cleanExportMenuClean.addEventListener('click',   e => e.stopPropagation());
+        this.UI.cleanExportMenuRemoved.addEventListener('click', e => e.stopPropagation());
+
         document.addEventListener('click', () => {
-            if (this.UI.cleanExportMenuClean) this.UI.cleanExportMenuClean.style.display = 'none';
+            if (this.UI.cleanExportMenuClean)   this.UI.cleanExportMenuClean.style.display   = 'none';
             if (this.UI.cleanExportMenuRemoved) this.UI.cleanExportMenuRemoved.style.display = 'none';
         });
 
-        // Export actions
-        this.UI.exportTxtClean.addEventListener('click', (e) => { e.preventDefault(); this.exportTxt(this.cleanResults, 'clean'); });
-        this.UI.exportCsvClean.addEventListener('click', (e) => { e.preventDefault(); this.exportCsv(this.cleanResults, 'clean'); });
-        
-        this.UI.exportTxtRemoved.addEventListener('click', (e) => { e.preventDefault(); this.exportTxt(this.removedResults, 'removed'); });
-        this.UI.exportCsvRemoved.addEventListener('click', (e) => { e.preventDefault(); this.exportCsv(this.removedResults, 'removed'); });
+        // Export actions — close menu after firing
+        this.UI.exportTxtClean.addEventListener('click',    (e) => { e.preventDefault(); this.exportTxt(this.cleanResults,   'clean');   this.UI.cleanExportMenuClean.style.display = 'none'; });
+        this.UI.exportCsvClean.addEventListener('click',    (e) => { e.preventDefault(); this.exportCsv(this.cleanResults,   'clean');   this.UI.cleanExportMenuClean.style.display = 'none'; });
+        this.UI.exportTxtRemoved.addEventListener('click',  (e) => { e.preventDefault(); this.exportTxt(this.removedResults, 'removed'); this.UI.cleanExportMenuRemoved.style.display = 'none'; });
+        this.UI.exportCsvRemoved.addEventListener('click',  (e) => { e.preventDefault(); this.exportCsv(this.removedResults, 'removed'); this.UI.cleanExportMenuRemoved.style.display = 'none'; });
     }
 
     setupDropZone(zoneId, inputEl) {
@@ -316,11 +321,11 @@ export class CleanFilter {
 
             this.setStatus('Completed ✓', 'status-completed');
             
-            // Enable export
-            this.UI.cleanExportBtnClean.disabled = cleanArr.length === 0;
-            this.UI.cleanExportBtnRemoved.disabled = removedArr.length === 0;
-            this.UI.copyCleanBtn.disabled = cleanArr.length === 0;
-            this.UI.copyRemovedBtn.disabled = removedArr.length === 0;
+            // Enable export + copy buttons (only if there is data)
+            this.UI.cleanExportBtnClean.disabled   = cleanArr.length === 0;
+            this.UI.cleanExportBtnRemoved.disabled  = removedArr.length === 0;
+            this.UI.copyCleanBtn.disabled           = cleanArr.length === 0;
+            this.UI.copyRemovedBtn.disabled         = removedArr.length === 0;
 
         } catch (e) {
             console.error(e);
