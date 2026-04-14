@@ -339,6 +339,7 @@ function pauseScan() {
 
 function clearAll() {
     isPaused = true;
+    isProcessing = false;
     setTimeout(() => {
         currentQueue = [];
         results      = [];
@@ -446,7 +447,7 @@ function rerender() {
 function updateStats() {
     const total    = results.length + currentQueue.length;
     const matched  = results.filter(r => r.isMatched).length;
-    const malicious = results.filter(r => r.isMatched && r.verdict === 'MALICIOUS').length;
+    const malicious = results.filter(r => r.verdict === 'MALICIOUS').length;
 
     UI.statTotal.textContent    = total > 0 ? `${results.length} / ${total}` : '0 / 0';
     UI.statMatched.textContent  = matched;
